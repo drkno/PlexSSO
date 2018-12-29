@@ -1,0 +1,16 @@
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: sans-serif;
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: black;
+}
+
+#root {
+    width: inherit;
+    height: inherit;
+}
