@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import PlexOAuth from './plex';
 import './App.css';
 
-import PlexImg from './img/plex.png';
+import PlexLightImg from './img/plex-light.svg';
+import PlexDarkImg from './img/plex-dark.svg';
 import LogoImg from './img/logo.png';
 
 class App extends Component {
@@ -98,11 +99,11 @@ class App extends Component {
                 </div>
                 
                 <button type="submit"
-                    className="btn btn-lg btn-warning"
+                    className="btn btn-lg btn-outline-warning"
                     onClick={() => this.login()}
                     onFocus={e => e.target.blur()}>
                     Sign in with&nbsp;
-                    <img src={PlexImg} alt='Logo' className="plex-inline" />
+                    <span className='plex-inline' />
                 </button>
                 <br />
                 <label className={`login-remember-me-checkbox-${this.state.remember ? '' : 'un'}checked login-remember-me-checkbox`}

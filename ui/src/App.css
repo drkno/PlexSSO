@@ -82,7 +82,17 @@
 
 .plex-inline {
     position: relative;
-    top: -2px;
+    display: inline-block;
+    top: 2px;
+    width: 62px;
+    height: 20px;
+    background-size: cover !important;
+    background: transparent url("./img/plex-light.svg") no-repeat;
+    transition: background .15s ease-in-out;
+}
+
+.btn-outline-warning:hover > .plex-inline, .btn-outline-warning:focus > .plex-inline, .btn-outline-warning:active > .plex-inline {
+    background: transparent url("./img/plex-dark.svg") no-repeat;
 }
 
 .login-form {
