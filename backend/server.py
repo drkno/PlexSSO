@@ -89,4 +89,4 @@ def sso():
 if __name__ == '__main__':
     domain = argv[1]
     server_id = get_local_server_identifier(argv[2] if len(argv) == 3 else 'Preferences.xml')
-    run(host='127.0.0.1', port=4200)
+    run(host='0.0.0.0', port=4200)

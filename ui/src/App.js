@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import PlexOAuth from './plex';
 import './App.css';
 
-import PlexLightImg from './img/plex-light.svg';
-import PlexDarkImg from './img/plex-dark.svg';
 import LogoImg from './img/logo.png';
 
 class App extends Component {
