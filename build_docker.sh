@@ -1,4 +1,4 @@
 set -e
 
-docker build --no-cache -t mrkno/plexsso .
-docker push mrkno/plexsso
+docker build --no-cache -t drkno/plexsso .
+docker push drkno/plexsso
