@@ -64,7 +64,7 @@ class PlexOAuth {
     }
 
     async _verifyToken(token) {
-        await fetch('/api/v2/login', {
+        const response = await fetch('/api/v2/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -73,6 +73,9 @@ class PlexOAuth {
                 token: token,
             })
         });
+        if (response.status > 399) {
+            throw new Error('Invalid token');
+        }
     }
 
     async _checkRememberedLogin() {

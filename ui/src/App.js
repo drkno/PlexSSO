@@ -41,6 +41,7 @@ class App extends Component {
 
     loginFailure() {
         this.setState({
+            loggedIn: false,
             failure: true
         });
     }

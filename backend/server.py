@@ -164,6 +164,6 @@ def serve_static_files(code):
         return ''
 
 def start_server(server_identifier):
-    debug(mode=True)
+    global server_id
     server_id = server_identifier
     run(host='0.0.0.0', port=4200)
