@@ -14,4 +14,5 @@ COPY --from=builder /app /app
 RUN pip install -r /app/requirements.txt && \
     rm /app/requirements.txt
 WORKDIR /app
+EXPOSE 4200
 ENTRYPOINT ["python", "main.py"]
