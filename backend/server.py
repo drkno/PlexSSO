@@ -1,19 +1,49 @@
-from plex import get_access_privileges, get_local_server_identifier, AccessLevel
-from bottle import run, post, get, request, response
+from plex import get_access_privileges, AccessLevel
+from bottle import run, post, get, request, response, route, static_file, error, debug
 from cachetools import TTLCache
-from sys import argv
 from uuid import uuid4
 from json import loads, dumps
 from traceback import print_exc
+from re import compile
+from os.path import splitext, basename, abspath, realpath, join, isfile
+from urllib.parse import urlparse
 
-domain = None
+ip_address_re = compile(r'^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
+
 server_id = None
 auth_token_cache = TTLCache(maxsize=128, ttl=3600)
 cookie_sig_key = uuid4().urn
+ui_path = abspath('./ui')
+
+def get_host_info():
+    host_header = request.get_header('x-upstream-host', request.get_header('host'))
+    protocol = request.get_header('x-upstream-protocol')
+    host_protocol = protocol if protocol is not None else 'http'
+    if ip_address_re.match(host_header):
+        return {
+            'host': host_header,
+            'subdomain': '',
+            'domain': host_header,
+            'protocol': host_protocol
+        }
+    else:
+        return {
+            'host': host_header,
+            'subdomain': host_header[:min(host_header.find('.'), len(host_header)):],
+            'domain': host_header[max(host_header.find('.') + 1, 0)::],
+            'protocol': host_protocol
+        }
 
 def get_data_from_cookie():
     token = request.get_cookie('kPlexSSOKookieV2', secret=cookie_sig_key)
     return (token, auth_token_cache.get(token))
+
+@get('/api/v2/healthcheck')
+def healthcheck():
+    response.set_header('content-type', 'application/json')
+    return dumps({
+        'healthy': True
+    })
 
 @post('/api/v2/login')
 def login():
@@ -31,9 +61,10 @@ def login():
                 'success': False
             })
         else:
+            host_info = get_host_info()
             sso_token = uuid4().urn
             auth_token_cache[sso_token] = access_privileges
-            response.set_cookie('kPlexSSOKookieV2', sso_token, secret=cookie_sig_key, domain=domain, max_age=3600, path='/')
+            response.set_cookie('kPlexSSOKookieV2', sso_token, secret=cookie_sig_key, domain=host_info['domain'], max_age=3600, path='/')
             return dumps({
                 'success': True
             })
@@ -50,7 +81,8 @@ def logout():
         (token, level) = get_data_from_cookie()
         if level is not None:
             del auth_token_cache[token]
-        response.delete_cookie('kPlexSSOKookieV2', domain=domain, path='/')
+        host_info = get_host_info()
+        response.delete_cookie('kPlexSSOKookieV2', domain=host_info['domain'], path='/')
         response.set_header('content-type', 'application/json')
         return dumps({
             'success': True
@@ -74,7 +106,8 @@ def sso():
             })
         else:
             auth_token_cache[token] = level
-            response.set_cookie('kPlexSSOKookieV2', token, secret=cookie_sig_key, domain=domain, max_age=3600, path='/')
+            host_info = get_host_info()
+            response.set_cookie('kPlexSSOKookieV2', token, secret=cookie_sig_key, domain=host_info['domain'], max_age=3600, path='/')
             response.status = 200
             return dumps({
                 'success': True
@@ -86,7 +119,51 @@ def sso():
             'success': False
         })
 
-if __name__ == '__main__':
-    domain = argv[1]
-    server_id = get_local_server_identifier(argv[2] if len(argv) == 3 else 'Preferences.xml')
+@route('/redirect/<service_name>')
+@route('/redirect/<service_name>/')
+@route('/redirect/<service_name>/<path_params:re:.*>')
+def redirect_to_service(service_name, path_params = ''):
+    (token, level) = get_data_from_cookie()
+    host_info = get_host_info()
+    if level is None:
+        response.set_header('location', '%s://%s/%s/%s' % (host_info['protocol'], host_info['host'], service_name, path_params))
+    else:
+        response.set_header('location', '%s://%s.%s/%s' % (host_info['protocol'], service_name, host_info['domain'], path_params))
+    response.status = 302
+    response.set_header('content-type', 'application/json')
+    return dumps({
+        'success': level is not None
+    })
+
+@error(404)
+def serve_static_files(code):
+    file_path = request.path
+    _, extension = splitext(basename(urlparse(file_path).path))
+    if extension is None or extension == '':
+        file_path += ('/' if len(file_path) > 0 and file_path[-1] != '/' else '') + 'index.html'
+        
+    approx_file_path = realpath(join(ui_path, '.' + file_path))
+    if not approx_file_path.startswith(ui_path):
+        response.status = 404
+        return ''
+
+    if not isfile(approx_file_path):
+        if file_path.count('/') <= 1:
+            response.status = 404
+            return ''
+        file_path = file_path[file_path.index('/', 1)::]
+        approx_file_path = realpath(join(ui_path, '.' + file_path))
+        if not approx_file_path.startswith(ui_path) or not isfile(approx_file_path):
+            response.status = 404
+            return ''
+
+    try:
+        return static_file(file_path, ui_path)
+    except:
+        response.status = 404
+        return ''
+
+def start_server(server_identifier):
+    debug(mode=True)
+    server_id = server_identifier
     run(host='0.0.0.0', port=4200)
