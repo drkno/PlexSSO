@@ -1,6 +1,6 @@
 import React from 'react';
-import { preloadImage } from '../../../../utils';
-import MarvinImg from '../../../../img/marvin.png';
+import { preloadImage } from '../../../../common/utils';
+import MarvinImg from '../../../../img/marvin-eyes.png';
 import './MarvinHeader.css';
 
 preloadImage(MarvinImg);

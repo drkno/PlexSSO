@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import PlexOAuth from './PlexOAuth';
+import PlexOAuth from '../../../../common/PlexOAuth';
 import { LoginForm, LogoutForm } from '../login-logout-form';
-import LoadingPlaceholder from '../loading-placeholder';
-
-const plexOAuthProvider = new PlexOAuth();
+import LoadingPlaceholder from '../../../../common/components/loading-placeholder';
 
 class PlexLogin extends Component {
     state = {
@@ -13,7 +11,7 @@ class PlexLogin extends Component {
 
     async componentDidMount() {
         this.setState({
-            loggedInStatus: await plexOAuthProvider.isLoggedIn()
+            loggedInStatus: await PlexOAuth.isLoggedIn()
         });
     }
 
@@ -21,7 +19,7 @@ class PlexLogin extends Component {
         this.setState({
             loggedInStatus: 'transition'
         });
-        const loginResult = await plexOAuthProvider.login(rememberMe);
+        const loginResult = await PlexOAuth.login(rememberMe);
         this.setState({
             loggedInStatus: loginResult,
             failedLogin: !loginResult
@@ -29,7 +27,7 @@ class PlexLogin extends Component {
     }
 
     async logout() {
-        await plexOAuthProvider.logout();
+        await PlexOAuth.logout();
         this.setState({
             loggedInStatus: false,
             failedLogin: false
@@ -37,7 +35,10 @@ class PlexLogin extends Component {
     }
 
     checkRedirect() {
-        const result = window.location.pathname !== '/' && !!window.location.pathname && !window.location.pathname.includes('/redirect/');
+        const result = window.location.pathname !== '/' &&
+            !!window.location.pathname &&
+            !window.location.pathname.startsWith('/redirect/') &&
+            !window.location.pathname.startsWith('/sso/');
         if (result) {
             const redirectUrl = '/redirect' + window.location.pathname + window.location.search;
             window.requestIdleCallback(() => {
