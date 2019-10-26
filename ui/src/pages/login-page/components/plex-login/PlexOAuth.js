@@ -8,35 +8,48 @@ const PlexHeaders = {
 };
 
 class PlexOAuth {
-    constructor(onSuccess, onFailure) {
+    constructor() {
         this._width = window.innerWidth || document.documentElement.clientWidth || window.screen.width;
         this._height = window.innerHeight || document.documentElement.clientHeight || window.screen.height;
         this._left = ((this._width / 2) - 300) + (window.screenLeft || window.screenX);
         this._top = ((this._height / 2) - 350) + (window.screenTop || window.screenY);
-
-        this._onSuccess = onSuccess;
-        this._onFailure = onFailure;
-
         this._window = null;
-
-        this._checkRememberedLogin();
     }
 
-    async _signIn() {
+    _show() {
+        this._window = window.open('', 'PlexSSO', `scrollbars=yes, width=${600}, height=${700}, top=${this._top}, left=${this._left}`);
+        if (window.focus) {
+            this._window.focus();
+        }
+    }
+
+    _hide() {
+        if (this._window) {
+            this._window.close();
+        }
+    }
+
+    _goTo(url) {
+        if (this._window) {
+            this._window.location = url;
+        }
+    }
+
+    async _getPlexToken() {
         try {
             this._show();
 
             const {pin, code} = await this._getPlexOAuthPin();
             this._goTo(`https://app.plex.tv/auth/#!?clientID=${PlexHeaders['X-Plex-Client-Identifier']}&code=${code}`);
             
-            let token;
+            let token = null;
             while(true) {
                 const response = await fetch(`https://plex.tv/api/v2/pins/${pin}`, {
                     headers: PlexHeaders
                 });
 
                 const jsonData = await response.json();
-                if (jsonData.authToken) {
+                if (jsonData.authToken || this._window.closed) {
                     token = jsonData.authToken;
                     break;
                 }
@@ -47,7 +60,8 @@ class PlexOAuth {
         }
         catch(e) {
             this._hide();
-            throw e;
+            console.error(e);
+            return null;
         }
     }
 
@@ -73,67 +87,39 @@ class PlexOAuth {
                 token: token,
             })
         });
-        if (response.status > 399) {
-            throw new Error('Invalid token');
-        }
+        return response.status < 400;
     }
 
-    async _checkRememberedLogin() {
-        const token = localStorage.getItem('plex_token');
-        if (token) {
-            try {
-                await this._verifyToken(token);
-                this._onSuccess(token);
-            }
-            catch {
-                // we don't care, the user will need to login again
-            }
+    async login(rememberMe, existingToken = null) {
+        const token = existingToken || await this._getPlexToken();
+        if (!token || !await this._verifyToken(token)) {
+            return false;
         }
-        else if (await this.checkLoginStatus()) {
-            this._onSuccess(null);
+        if (rememberMe) {
+            localStorage.setItem('plex_token', token);
         }
+        return true;
     }
 
-    async performLogin(rememberMe) {
-        try {
-            const token = await this._signIn();
-            await this._verifyToken(token);
-            if (rememberMe) {
-                localStorage.setItem('plex_token', token);
-            }
-            this._onSuccess(token);
-        }
-        catch(e) {
-            this._onFailure(e);
-        }
-    }
-
-    async performLogout() {
+    async logout() {
         await fetch('/api/v2/logout');
         localStorage.removeItem('plex_token');
     }
 
-    async checkLoginStatus() {
+    async isLoggedIn() {
         const response = await fetch('/api/v2/sso');
         const json = await response.json();
-        return !!json.success;
-    }
-
-    _show() {
-        this._window = window.open('', 'PlexSSO', `scrollbars=yes, width=${600}, height=${700}, top=${this._top}, left=${this._left}`);
-        if (window.focus) {
-            this._window.focus();
+        if (json.success) {
+            return true;
         }
-    }
 
-    _hide() {
-        if (this._window) {
-            this._window.close();
+        // remember me
+        const storedToken = localStorage.getItem('plex_token');
+        if (!!storedToken) {
+            return await this.login(true, storedToken);
         }
-    }
 
-    _goTo(url) {
-        this._window.location = url;
+        return false;
     }
 }
 

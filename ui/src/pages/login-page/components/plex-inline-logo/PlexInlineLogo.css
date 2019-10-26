@@ -1,0 +1,14 @@
+.plex-inline {
+    position: relative;
+    display: inline-block;
+    top: 2px;
+    width: 62px;
+    height: 20px;
+    background-size: cover !important;
+    background: transparent url("../../../../img/plex-light.svg") no-repeat;
+    transition: background .15s ease-in-out;
+}
+
+.btn:hover > .plex-inline, .btn:focus > .plex-inline, .btn:active > .plex-inline {
+    background: transparent url("../../../../img/plex-dark.svg") no-repeat;
+}

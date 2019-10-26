@@ -1,0 +1,11 @@
+.login-redirect-link {
+    color: #ffc107;
+    padding: 14px;
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+}
+
+.login-redirect-link:active, .login-redirect-link:active:hover, .login-redirect-link:focus {
+    color: #ffa601;
+}

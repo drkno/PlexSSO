@@ -1,0 +1,36 @@
+.login-remember-me-checkbox {
+    color: white;
+    display: inline-block;
+    position: relative;
+    margin-bottom: 20px;
+    min-height: 21px;
+    font-weight: 400;
+}
+
+.login-remember-me-checkbox {
+    cursor: pointer;
+    padding-left: 25px;
+}
+
+.login-remember-me-checkbox-checked::before {
+    content: "\2713";
+}
+
+.login-remember-me-checkbox-unchecked::before {
+    content: "";
+}
+
+.login-remember-me-checkbox::before {
+    font-size: 13px;
+    line-height: 13px;
+    text-align: center;
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    position: absolute;
+    left: 0;
+    bottom: 1px;
+    border: 2px solid #eee;
+    border-radius: 3px;
+}
