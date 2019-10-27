@@ -8,7 +8,7 @@ RUN cd /app/ui_build && \
     cd /app && \
     rm -r ui_build
 
-FROM python:3-slim
+FROM python:3.7-slim
 LABEL maintainer="Matthew Knox <matthew@makereti.co.nz>"
 COPY --from=builder /app /app
 RUN pip install -r /app/requirements.txt && \
