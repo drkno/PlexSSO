@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -35,13 +36,13 @@ namespace PlexSSO.Service.PlexClient
             response.EnsureSuccessStatusCode();
 
             var xml = await response.Content.ReadAsStringAsync();
-            logger.LogWarning(xml);
             return XDocument.Parse(xml)
+                .Root
                 .Elements("Device")
                 .Select(x => (
                     x.Attribute("clientIdentifier").Value,
-                    x.Attribute("owned").Value,
-                    x.Attribute("home").Value
+                    x.Attribute("owned")?.Value ?? "0",
+                    x.Attribute("home")?.Value ?? "0"
                 ));
         }
 
@@ -67,7 +68,7 @@ namespace PlexSSO.Service.PlexClient
 
         public ServerIdentifier GetLocalServerIdentifier(string path = "Preferences.xml")
         {
-            return new ServerIdentifier(XDocument.Parse(path).Root.Attribute("ProcessedMachineIdentifier").Value);
+            return new ServerIdentifier(XDocument.Parse(File.ReadAllText(path)).Root.Attribute("ProcessedMachineIdentifier").Value);
         }
 
         public async Task<AccessTier> GetAccessTier(ServerIdentifier serverId, Token token)

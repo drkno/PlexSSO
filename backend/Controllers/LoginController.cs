@@ -28,10 +28,10 @@ namespace PlexSSO.Controllers
             this.logger = logger;
             this.plexClient = plexClient;
 
-            var id = configuration["-s"] ?? configuration["--sever"];
+            var id = configuration["server"];
             if (id == null)
             {
-                var pref = configuration["-p"] ?? configuration["--preferences"];
+                var pref = configuration["preferences"];
                 serverIdentifier = plexClient.GetLocalServerIdentifier(pref ?? "Preferences.xml");
             }
             else
@@ -59,9 +59,9 @@ namespace PlexSSO.Controllers
 
                 var claims = new List<Claim>
                 {
-                    new Claim(Constants.AccessTierClaim, AccessTier.NoAccess.ToString()),
-                    new Claim(Constants.AccessTokenClaim, "abcd"),
-                    new Claim(Constants.ServerIdentifierClaim, "1234")
+                    new Claim(Constants.AccessTierClaim, accessTier.ToString()),
+                    new Claim(Constants.AccessTokenClaim, token.Value),
+                    new Claim(Constants.ServerIdentifierClaim, serverIdentifier.Value)
                 };
 
                 var identity = new ClaimsIdentity(

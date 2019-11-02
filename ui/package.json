@@ -13,7 +13,7 @@
         "test": "react-scripts test --env=jsdom",
         "eject": "react-scripts eject"
     },
-    "proxy": "https://login.tasmax.nz",
+    "proxy": "http://localhost:5000",
     "browserslist": [
         ">0.2%",
         "not dead",
