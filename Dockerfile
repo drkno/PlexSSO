@@ -1,18 +1,19 @@
-FROM node:current-alpine as builder
-COPY ./backend /app
-COPY ./ui /app/ui_build
-RUN cd /app/ui_build && \
-    yarn && \
-    yarn build && \
-    mv build ../ui && \
-    cd /app && \
-    rm -r ui_build
+FROM node:current-alpine as react-builder
+COPY ./ui /ui
+WORKDIR /ui
+RUN yarn && \
+    yarn build
 
-FROM python:3.7-slim
-LABEL maintainer="Matthew Knox <matthew@makereti.co.nz>"
-COPY --from=builder /app /app
-RUN pip install -r /app/requirements.txt && \
-    rm /app/requirements.txt
+FROM mcr.microsoft.com/dotnet/core/sdk:3.0 as aspnet-builder
+COPY ./backend /backend
+WORKDIR /backend
+RUN dotnet restore && \
+    dotnet publish -c Release -o build && \
+    rm build/ui/index.html
+COPY --from=react-builder /ui/build /backend/build/ui
+
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.0 AS runtime
 WORKDIR /app
+COPY --from=aspnet-builder /backend/build /app
+ENTRYPOINT ["dotnet", "aspnetapp.dll"]
 EXPOSE 4200
-ENTRYPOINT ["python", "main.py"]
