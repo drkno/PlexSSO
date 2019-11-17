@@ -31,7 +31,7 @@ namespace PlexSSO.Controllers
                         ? (AccessTier) Enum.Parse(typeof(AccessTier), accessTier.Value)
                         : AccessTier.NoAccess
                 );
-                Response.StatusCode = sso.Success ? 200 : 403;
+                Response.StatusCode = sso.LoggedIn ? 200 : 403;
                 return sso;
             }
             catch (Exception)
