@@ -25,3 +25,4 @@ This is designed to sit in front of various services and replace their authentic
 |----------------------|-------------|
 | `-s`/`--server`      | Your plex server identifier. This can often be found somewhere in `/var/lib/plexmediaserver/Preferences.xml`. This argument is mandatory, as without it we do not know which server to authenticate against. |
 | `-p`/`--preferences` | The path to your Plex `Preferences.xml` file, used to extract your Plex server identifier. This argument is relative to docker, so a volume must be configured in order to use this option. Additionally, it is mutually exclusive to `--server` as it serves the same purpose. |
+| `-c`/`--cookie-domain` | The domain to use for the authentication cookie. If all of your services are on subdomains `*.example.com` and your SSO is at `login.example.com` then this should be set to `.example.com`. See [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies) for more information.  |

@@ -15,6 +15,7 @@ namespace PlexSSO
         private const string PoweredByHeaderName = "X-Powered-By";
         private const string PoweredByHeaderValue = "One small piece of fairy cake";
         public IConfiguration Configuration { get; }
+        
 
         public Startup(IConfiguration configuration)
         {
@@ -31,6 +32,7 @@ namespace PlexSSO
             {
                 configuration.RootPath = "ui";
             });
+
             services.AddHttpClient();
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
@@ -40,6 +42,11 @@ namespace PlexSSO
                     options.LoginPath = "/api/v2/login";
                     options.LogoutPath = "/api/v2/logout";
                     options.ExpireTimeSpan = TimeSpan.FromDays(1);
+                    var cookieDomain = Configuration["cookie_domain"];
+                    if (!string.IsNullOrWhiteSpace(cookieDomain))
+                    {
+                        options.Cookie.Domain = cookieDomain;
+                    }
                 });
             services.AddHealthChecks();
             services.AddSingleton<IPlexClient, Client>();
