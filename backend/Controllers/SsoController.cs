@@ -13,15 +13,24 @@ namespace PlexSSO.Controllers
         [HttpGet]
         public SsoResponse Get()
         {
-            var accessTier = User.Claims.FirstOrDefault(x => x.Type == Constants.AccessTierClaim);
-            var sso = new SsoResponse(
-                accessTier == null,
-                accessTier == null
-                    ? (AccessTier) Enum.Parse(typeof(AccessTier), accessTier.Value)
-                    : AccessTier.NoAccess
-            );
-            Response.StatusCode = sso.Success ? 200 : 403;
-            return sso;
+            try
+            {
+                var accessTier = User.Claims.FirstOrDefault(x => x.Type == Constants.AccessTierClaim);
+                var sso = new SsoResponse(
+                    true,
+                    accessTier != null,
+                    accessTier == null
+                        ? (AccessTier) Enum.Parse(typeof(AccessTier), accessTier.Value)
+                        : AccessTier.NoAccess
+                );
+                Response.StatusCode = sso.Success ? 200 : 403;
+                return sso;
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = 403;
+                return new SsoResponse(true, false, AccessTier.NoAccess);
+            }
         }
     }
 }

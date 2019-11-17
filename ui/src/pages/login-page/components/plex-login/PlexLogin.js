@@ -6,12 +6,16 @@ import LoadingPlaceholder from '../../../../common/components/loading-placeholde
 class PlexLogin extends Component {
     state = {
         loggedInStatus: null,
-        failedLogin: false
+        failedLogin: false,
+        tier: ''
     };
 
     async componentDidMount() {
+        const loggedInState = await PlexOAuth.isLoggedIn();
         this.setState({
-            loggedInStatus: await PlexOAuth.isLoggedIn()
+            loggedInStatus: loggedInState.loggedIn,
+            failedLogin: loggedInState.success === false,
+            tier: loggedInState.tier
         });
     }
 
@@ -19,10 +23,12 @@ class PlexLogin extends Component {
         this.setState({
             loggedInStatus: 'transition'
         });
+
         const loginResult = await PlexOAuth.login(rememberMe);
         this.setState({
-            loggedInStatus: loginResult,
-            failedLogin: !loginResult
+            loggedInStatus: loginResult.loggedIn,
+            failedLogin: loginResult.loggedIn === false || loginResult.success === false,
+            tier: loginResult.tier
         });
     }
 
@@ -30,7 +36,8 @@ class PlexLogin extends Component {
         await PlexOAuth.logout();
         this.setState({
             loggedInStatus: false,
-            failedLogin: false
+            failedLogin: false,
+            tier: ''
         });
     }
 
@@ -54,7 +61,7 @@ class PlexLogin extends Component {
     render() {
         switch (this.state.loggedInStatus) {
             case 'transition': return (<LoadingPlaceholder />);
-            case true: return (<LogoutForm logout={this.logout.bind(this)} redirectTo={this.checkRedirect()} />);
+            case true: return (<LogoutForm logout={this.logout.bind(this)} tier={this.state.tier} redirectTo={this.checkRedirect()} />);
             case false: return (<LoginForm login={this.login.bind(this)} failure={this.state.failedLogin} />);
             default: return (<LoadingPlaceholder />);
         }

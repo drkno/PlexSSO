@@ -1,27 +1,22 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.Extensions.Logging;
 
 namespace PlexSSO.Service.PlexClient
 {
     public class Client : IPlexClient
     {
         private readonly HttpClient _httpClient;
-        private readonly ILogger<Client> logger;
 
-        public Client(IHttpClientFactory clientFactory,
-                      ILogger<Client> logger)
+        public Client(IHttpClientFactory clientFactory)
         {
             _httpClient = clientFactory.CreateClient();
-            this.logger = logger;
         }
 
-        public async Task<IEnumerable<(string, string, string)>> GetServers(Token token)
+        private async Task<IEnumerable<(string, string, string)>> GetServers(Token token)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "https://plex.tv/api/resources");
             request.Headers.Add("includeHttps", "1");
@@ -46,7 +41,7 @@ namespace PlexSSO.Service.PlexClient
                 ));
         }
 
-        public IEnumerable<(ServerIdentifier, AccessTier)> GetServerDetails(IEnumerable<(string, string, string)> servers)
+        private IEnumerable<(ServerIdentifier, AccessTier)> GetServerDetails(IEnumerable<(string, string, string)> servers)
         {
             return servers.Select(x =>
             {
@@ -77,12 +72,14 @@ namespace PlexSSO.Service.PlexClient
             {
                 var servers = await GetServers(token);
                 var serverDetails = GetServerDetails(servers);
-                return serverDetails.Where(x => x.Item1 == serverId)
-                                    .Select(x => x.Item2).First();
+                var accessLevel = serverDetails.Where(x => x.Item1 == serverId)
+                                               .Select(x => x.Item2)
+                                               .FirstOrDefault();
+                return accessLevel == default(AccessTier) ? AccessTier.NoAccess : accessLevel;
             }
             catch
             {
-                return AccessTier.NoAccess;
+                return AccessTier.Failure;
             }                
         }
     }

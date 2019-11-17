@@ -41,12 +41,13 @@ namespace PlexSSO.Controllers
         }
 
         [HttpPost]
-        public async Task<BasicResponse> Login([FromBody] LoginPost data)
+        public async Task<SsoResponse> Login([FromBody] LoginPost data)
         {
             try
             {
                 var token = new Token(data.Token);
-                var tier = User.Claims.Where(x => x.Type == Constants.AccessTierClaim).FirstOrDefault();
+                var tier = User.Claims.Where(x => x.Type == Constants.AccessTierClaim)
+                                      .FirstOrDefault();
                 var accessTier = AccessTier.NoAccess;
                 if (tier == null)
                 {
@@ -55,6 +56,12 @@ namespace PlexSSO.Controllers
                 else
                 {
                     accessTier = (AccessTier) Enum.Parse(typeof(AccessTier), tier.Value);
+                }
+
+                if (accessTier == AccessTier.Failure)
+                {
+                    Response.StatusCode = 401;
+                    return new SsoResponse(true, false, AccessTier.NoAccess);
                 }
 
                 var claims = new List<Claim>
@@ -84,18 +91,14 @@ namespace PlexSSO.Controllers
                 if (accessTier == AccessTier.NoAccess)
                 {
                     Response.StatusCode = 403;
-                    return new BasicResponse(false);
                 }
-                else
-                {
-                    return new BasicResponse(true);
-                }
+                return new SsoResponse(true, true, accessTier);
             }
             catch (Exception e)
             {
                 logger.LogError("Failed to log user in", e);
                 Response.StatusCode = 400;
-                return new BasicResponse(false);
+                return new SsoResponse(false, false, AccessTier.NoAccess);
             }
         }
     }

@@ -23,6 +23,7 @@ namespace PlexSSO
                     });
                 })
                 .UseStartup<Startup>()
+                .UseUrls("http://0.0.0.0:4200/")
                 .Build()
                 .Run();
         }

@@ -15,5 +15,5 @@ COPY --from=react-builder /ui/build /backend/build/ui
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.0 AS runtime
 WORKDIR /app
 COPY --from=aspnet-builder /backend/build /app
-ENTRYPOINT ["dotnet", "aspnetapp.dll"]
+ENTRYPOINT ["dotnet", "PlexSSO.dll"]
 EXPOSE 4200
