@@ -117,7 +117,8 @@ class PlexOAuth extends EventEmitter {
         };
     }
 
-    async _verifyToken(token) {
+    async login(rememberMe, existingToken = null) {
+        const token = existingToken || await this._getPlexToken();
         const response = await fetch('/api/v2/login', {
             method: 'POST',
             headers: {
@@ -127,26 +128,24 @@ class PlexOAuth extends EventEmitter {
                 token: token,
             })
         });
-        return response.status < 400;
-    }
+        const json = await response.json();
 
-    async login(rememberMe, existingToken = null) {
-        const token = existingToken || await this._getPlexToken();
-        if (!token || !await this._verifyToken(token)) {
-            this._setLoggedInStatus(false);
-            return false;
-        }
-        if (rememberMe) {
+        if (json.loggedIn && token && rememberMe) {
             localStorage.setItem('plex_token', token);
         }
-        this._setLoggedInStatus(true);
-        return true;
+        this._setLoggedInStatus(json);
+        return json;
     }
 
     async logout() {
         await fetch('/api/v2/logout');
         localStorage.removeItem('plex_token');
-        this._setLoggedInStatus(false);
+        this._setLoggedInStatus({
+            success: true,
+            loggedIn: false,
+            tier: 'NoAccess'
+        });
+        return this._loggedInStatus;
     }
 
     async isLoggedIn() {
@@ -156,9 +155,9 @@ class PlexOAuth extends EventEmitter {
 
         const response = await fetch('/api/v2/sso');
         const json = await response.json();
-        if (json.success) {
-            this._setLoggedInStatus(true);
-            return true;
+        if (json.loggedIn) {
+            this._setLoggedInStatus(json);
+            return this._loggedInStatus;
         }
 
         // remember me
@@ -167,8 +166,12 @@ class PlexOAuth extends EventEmitter {
             return await this.login(true, storedToken);
         }
 
-        this._setLoggedInStatus(false);
-        return false;
+        this._setLoggedInStatus({
+            success: true,
+            loggedIn: false,
+            tier: 'NoAccess'
+        });
+        return this._loggedInStatus;
     }
 }
 
