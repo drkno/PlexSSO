@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using PlexSSO.Model;
 using PlexSSO.Service.PlexClient;
 
@@ -10,6 +11,13 @@ namespace PlexSSO.Controllers
     [Route("api/v2/[controller]")]
     public class SsoController : ControllerBase
     {
+        private ILogger<SsoController> _logger;
+
+        public SsoController(ILogger<SsoController> logger)
+        {
+            this._logger = logger;
+        }
+
         [HttpGet]
         public SsoResponse Get()
         {
@@ -19,7 +27,7 @@ namespace PlexSSO.Controllers
                 var sso = new SsoResponse(
                     true,
                     accessTier != null,
-                    accessTier == null
+                    accessTier != null
                         ? (AccessTier) Enum.Parse(typeof(AccessTier), accessTier.Value)
                         : AccessTier.NoAccess
                 );

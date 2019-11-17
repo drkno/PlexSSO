@@ -12,6 +12,8 @@ namespace PlexSSO
 {
     public class Startup
     {
+        private const string PoweredByHeaderName = "X-Powered-By";
+        private const string PoweredByHeaderValue = "One small piece of fairy cake";
         public IConfiguration Configuration { get; }
 
         public Startup(IConfiguration configuration)
@@ -39,6 +41,7 @@ namespace PlexSSO
                     options.LogoutPath = "/api/v2/logout";
                     options.ExpireTimeSpan = TimeSpan.FromDays(1);
                 });
+            services.AddHealthChecks();
             services.AddSingleton<IPlexClient, Client>();
         }
 
@@ -52,6 +55,10 @@ namespace PlexSSO
             {
                 app.UseExceptionHandler("/sso/403");
             }
+            app.Use((context, next) => {
+                context.Response.Headers.Add(PoweredByHeaderName, PoweredByHeaderValue);
+                return next.Invoke();
+            });
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
             app.UseRouting();
@@ -65,6 +72,7 @@ namespace PlexSSO
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(name: "default", pattern: "{controller}/{action=Index}/{id?}");
+                endpoints.MapHealthChecks("/api/v2/healthcheck");
             });
         }
     }

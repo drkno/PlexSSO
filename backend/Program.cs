@@ -22,6 +22,7 @@ namespace PlexSSO
                         {"--preferences", "preferences"}
                     });
                 })
+                .ConfigureKestrel((context, options) => options.AddServerHeader = false)
                 .UseStartup<Startup>()
                 .UseUrls("http://0.0.0.0:4200/")
                 .Build()
