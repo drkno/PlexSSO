@@ -15,6 +15,9 @@ COPY --from=react-builder /ui/build /backend/build/ui
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS runtime
 WORKDIR /app
 COPY --from=aspnet-builder /backend/build /app
-ENTRYPOINT ["dotnet", "PlexSSO.dll"]
+RUN mkdir -p /config && \
+    chmod 777 /config
+ENTRYPOINT ["dotnet", "PlexSSO.dll", "--config", "/config/config.json"]
 EXPOSE 4200
+VOLUME [ "/config" ]
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD [ "curl", "--fail", "http://localhost:4200/api/v2/healthcheck" ]

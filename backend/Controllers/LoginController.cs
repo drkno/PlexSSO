@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PlexSSO.Model;
+using PlexSSO.Service.Config;
 using PlexSSO.Service.PlexClient;
 
 namespace PlexSSO.Controllers
@@ -23,15 +23,15 @@ namespace PlexSSO.Controllers
 
         public LoginController(ILogger<LoginController> logger,
                                IPlexClient plexClient,
-                               IConfiguration configuration)
+                               IConfigurationService configuration)
         {
             this.logger = logger;
             this.plexClient = plexClient;
 
-            var id = configuration["server"];
+            var id = configuration.GetConfig().ServerIdentifier;
             if (id == null)
             {
-                var pref = configuration["preferences"];
+                var pref = configuration.GetConfig().PlexPreferencesFile;
                 serverIdentifier = plexClient.GetLocalServerIdentifier(pref ?? "Preferences.xml");
             }
             else

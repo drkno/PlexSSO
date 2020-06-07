@@ -1,0 +1,17 @@
+{
+  "serverIdentifier": "30524c99fb3a0509b6b93a36c368dd54a71a8e17",
+  "plexPreferencesFile": null,
+  "cookieDomain": ".example.com",
+  "accessControls": {
+    "example-service": [
+      {
+        "path": "/",
+        "minimumAccessTier": "NormalUser",
+        "controlType": "Block",
+        "exempt": [
+          "some-exempt-user"
+        ]
+      }
+    ]
+  }
+}

@@ -21,7 +21,8 @@ namespace PlexSSO
                         {"-p", "preferences"},
                         {"--preferences", "preferences"},
                         {"-c", "cookie_domain"},
-                        {"--cookie-domain", "cookie_domain"}
+                        {"--cookie-domain", "cookie_domain"},
+                        {"--config", "config"}
                     });
                 })
                 .ConfigureKestrel((context, options) => options.AddServerHeader = false)
