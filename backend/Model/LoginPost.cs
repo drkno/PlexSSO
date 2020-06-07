@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace PlexSSO.Model
 {
     public class LoginPost

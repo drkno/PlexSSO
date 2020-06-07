@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using PlexSSO.Service.Config;
 using PlexSSO.Service.PlexClient;
 
 namespace PlexSSO
@@ -14,12 +15,12 @@ namespace PlexSSO
     {
         private const string PoweredByHeaderName = "X-Powered-By";
         private const string PoweredByHeaderValue = "One small piece of fairy cake";
-        public IConfiguration Configuration { get; }
+        private IConfigurationService ConfigurationService { get; }
         
-
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            ConfigurationService = new ConfigurationService(configuration);
+            Console.WriteLine(ConfigurationService.GetConfig().ToString());
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -42,7 +43,7 @@ namespace PlexSSO
                     options.LoginPath = "/api/v2/login";
                     options.LogoutPath = "/api/v2/logout";
                     options.ExpireTimeSpan = TimeSpan.FromDays(1);
-                    var cookieDomain = Configuration["cookie_domain"];
+                    var cookieDomain = ConfigurationService.GetConfig().CookieDomain;
                     if (!string.IsNullOrWhiteSpace(cookieDomain))
                     {
                         options.Cookie.Domain = cookieDomain;
@@ -50,6 +51,7 @@ namespace PlexSSO
                 });
             services.AddHealthChecks();
             services.AddSingleton<IPlexClient, Client>();
+            services.AddSingleton<IConfigurationService>(ConfigurationService);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
