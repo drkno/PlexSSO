@@ -73,6 +73,15 @@ namespace PlexSSO.Service.Config
         {
             return _config;
         }
+
+        public PlexSsoConfig.AccessControl[] GetAccessControls(string serviceName)
+        {
+            if (!_config.AccessControls.TryGetValue(serviceName, out var accessControls))
+            {
+                accessControls = new PlexSsoConfig.AccessControl[0];
+            }
+            return accessControls;
+        }
     }
 }
 

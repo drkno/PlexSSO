@@ -6,6 +6,7 @@ namespace PlexSSO.Service.PlexClient
     {
         ServerIdentifier GetLocalServerIdentifier(string path = "Preferences.xml");
         Task<AccessTier> GetAccessTier(ServerIdentifier serverId, Token token);
+        Task<User> GetUserInfo(Token token);
     }
 }
 

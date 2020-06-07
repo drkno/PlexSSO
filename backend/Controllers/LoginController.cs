@@ -61,14 +61,19 @@ namespace PlexSSO.Controllers
                 if (accessTier == AccessTier.Failure)
                 {
                     Response.StatusCode = 401;
-                    return new SsoResponse(true, false, AccessTier.NoAccess);
+                    return new SsoResponse(true, false, false, AccessTier.NoAccess);
                 }
+
+                var user = await plexClient.GetUserInfo(token);
 
                 var claims = new List<Claim>
                 {
                     new Claim(Constants.AccessTierClaim, accessTier.ToString()),
                     new Claim(Constants.AccessTokenClaim, token.Value),
-                    new Claim(Constants.ServerIdentifierClaim, serverIdentifier.Value)
+                    new Claim(Constants.ServerIdentifierClaim, serverIdentifier.Value),
+                    new Claim(Constants.UsernameClaim, user.Username),
+                    new Claim(Constants.EmailClaim, user.Email),
+                    new Claim(Constants.ThumbnailClaim, user.Thumbnail)
                 };
 
                 var identity = new ClaimsIdentity(
@@ -92,13 +97,13 @@ namespace PlexSSO.Controllers
                 {
                     Response.StatusCode = 403;
                 }
-                return new SsoResponse(true, true, accessTier);
+                return new SsoResponse(true, true, false, accessTier);
             }
             catch (Exception e)
             {
                 logger.LogError("Failed to log user in", e);
                 Response.StatusCode = 400;
-                return new SsoResponse(false, false, AccessTier.NoAccess);
+                return new SsoResponse(false, false, false, AccessTier.NoAccess);
             }
         }
     }

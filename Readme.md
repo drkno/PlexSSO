@@ -54,7 +54,7 @@ By default PlexSSO is configurable using a configuration stored in the `config.j
 #### Access Control Service Rules
 | Property              | Description |
 |-----------------------|-------------|
-| `path` | URL path within the affected service that this affects. |
+| `path` | URL path within the affected service that this affects. Requires `X-PlexSSO-Original-URI` to be passed by `nginx`/your reverse proxy. |
 | `minimumAccessTier` | Access tier that is required at minimum for this rule. If `controlType` is `Block`, then users with access levels less than this will be blocked, and >= will be allowed. If `controlType` is `Allow` the reverse applies. Possible values are `Owner`, `HomeUser`, `NormalUser` and `NoAccess`. |
 | `controlType` | `Allow` or `Block`, changes the behaviour of `minimumAccessTier`. |
 | `exempt` | Usernames of users which should have the decision made by `minimumAccessTier` reversed. |

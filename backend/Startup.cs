@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using PlexSSO.Service.Auth;
 using PlexSSO.Service.Config;
 using PlexSSO.Service.PlexClient;
 
@@ -52,6 +53,7 @@ namespace PlexSSO
             services.AddHealthChecks();
             services.AddSingleton<IPlexClient, Client>();
             services.AddSingleton<IConfigurationService>(ConfigurationService);
+            services.AddSingleton<IAuthValidator, AuthenticationValidator>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

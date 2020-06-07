@@ -6,10 +6,12 @@ namespace PlexSSO.Model
     {
         public AccessTier Tier { get; }
         public bool LoggedIn { get; }
+        public bool AccessBlocked { get; }
 
-        public SsoResponse(bool success, bool loggedIn, AccessTier accessTier) : base(success)
+        public SsoResponse(bool success, bool loggedIn, bool blocked, AccessTier accessTier) : base(success)
         {
             LoggedIn = loggedIn;
+            AccessBlocked = blocked;
             Tier = accessTier;
         }
     }

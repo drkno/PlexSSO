@@ -16,6 +16,29 @@ namespace PlexSSO.Service.PlexClient
             _httpClient = clientFactory.CreateClient();
         }
 
+        public async Task<User> GetUserInfo(Token token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, "https://plex.tv/users/account");
+            request.Headers.Add("X-Plex-Product", "PlexSSO");
+            request.Headers.Add("X-Plex-Version", "Plex OAuth");
+            request.Headers.Add("X-Plex-Client-Identifier", "PlexSSOv2");
+            request.Headers.Add("X-Plex-Token", token.Value);
+            request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            var xml = await response.Content.ReadAsStringAsync();
+
+            var xmlDoc = XDocument.Parse(xml).Root;
+
+            return new User(
+                xmlDoc.Element("username")?.Value ?? string.Empty,
+                xmlDoc.Element("email")?.Value ?? string.Empty,
+                xmlDoc.Attribute("thumb")?.Value ?? string.Empty
+            );
+        }
+
         private async Task<IEnumerable<(string, string, string)>> GetServers(Token token)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "https://plex.tv/api/resources");
