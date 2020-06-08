@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PlexSSO.Model;
+using PlexSSO.Service.Auth;
 using PlexSSO.Service.Config;
 using PlexSSO.Service.PlexClient;
 
@@ -15,18 +16,21 @@ namespace PlexSSO.Controllers
 {
     [ApiController]
     [Route("api/v2/[controller]")]
-    public class LoginController : ControllerBase
+    public class LoginController : CommonAuthController
     {
-        private readonly ILogger<LoginController> logger;
-        private readonly IPlexClient plexClient;
+        private readonly ILogger<LoginController> _logger;
+        private readonly IPlexClient _plexClient;
+        private readonly IAuthValidator _authValidator;
         private readonly ServerIdentifier serverIdentifier;
 
         public LoginController(ILogger<LoginController> logger,
                                IPlexClient plexClient,
+                               IAuthValidator authValidator,
                                IConfigurationService configuration)
         {
-            this.logger = logger;
-            this.plexClient = plexClient;
+            this._logger = logger;
+            this._plexClient = plexClient;
+            this._authValidator = authValidator;
 
             var id = configuration.GetConfig().ServerIdentifier;
             if (id == null)
@@ -46,25 +50,20 @@ namespace PlexSSO.Controllers
             try
             {
                 var token = new Token(data.Token);
-                var tier = User.Claims.Where(x => x.Type == Constants.AccessTierClaim)
-                                      .FirstOrDefault();
-                var accessTier = AccessTier.NoAccess;
-                if (tier == null)
+                var (accessTier, loggedIn) = GetAccessTier();
+                if (!loggedIn)
                 {
-                    accessTier = await plexClient.GetAccessTier(serverIdentifier, token);
-                }
-                else
-                {
-                    accessTier = (AccessTier) Enum.Parse(typeof(AccessTier), tier.Value);
+                    accessTier = await _plexClient.GetAccessTier(serverIdentifier, token);
                 }
 
                 if (accessTier == AccessTier.Failure)
                 {
-                    Response.StatusCode = 401;
-                    return new SsoResponse(true, false, false, AccessTier.NoAccess);
+                    var loginFailureResponse = _authValidator.ValidateAuthenticationStatus(AccessTier.NoAccess, false, GetServiceName(), GetServiceUri(), string.Empty);
+                    Response.StatusCode = loginFailureResponse.Status;
+                    return loginFailureResponse;
                 }
 
-                var user = await plexClient.GetUserInfo(token);
+                var user = await _plexClient.GetUserInfo(token);
 
                 var claims = new List<Claim>
                 {
@@ -93,17 +92,16 @@ namespace PlexSSO.Controllers
                     authProperties
                 );
 
-                if (accessTier == AccessTier.NoAccess)
-                {
-                    Response.StatusCode = 403;
-                }
-                return new SsoResponse(true, true, false, accessTier);
+                var response = _authValidator.ValidateAuthenticationStatus(accessTier, true, GetServiceName(), GetServiceUri(), user.Username);
+                Response.StatusCode = response.Status;
+                return response;
             }
             catch (Exception e)
             {
-                logger.LogError("Failed to log user in", e);
-                Response.StatusCode = 400;
-                return new SsoResponse(false, false, false, AccessTier.NoAccess);
+                _logger.LogError("Failed to log user in", e);
+                var unhandledErrorResponse = _authValidator.ValidateAuthenticationStatus(AccessTier.NoAccess, false, GetServiceName(), GetServiceUri(), string.Empty, true);
+                Response.StatusCode = unhandledErrorResponse.Status;
+                return unhandledErrorResponse;
             }
         }
     }

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -7,18 +8,20 @@ namespace PlexSSO.Service.Config
 {
     public class ConfigurationService : IConfigurationService
     {
-        private const string ConfigurationFileKey = "config";
-        private const string DefaultConfigurationFile = "config.json";
+        private const string ConfigurationDirectoryKey = "config";
+        private const string ConfigurationFileName = "config.json";
 
         private const string ServerConfigurationKey = "server";
         private const string PreferencesConfigurationKey = "preferences";
         private const string CookieDomainConfigurationKey = "cookie_domain";
 
+        private readonly string _configDirectory;
         private readonly PlexSsoConfig _config;
 
         public ConfigurationService(IConfiguration configuration)
         {
-            var configFile = configuration[ConfigurationFileKey] ?? DefaultConfigurationFile;
+            _configDirectory = configuration[ConfigurationDirectoryKey] ?? Environment.CurrentDirectory;
+            var configFile = Path.Join(_configDirectory, ConfigurationFileName);
             _config = LoadConfig(configFile, configuration);
         }
 
@@ -81,6 +84,11 @@ namespace PlexSSO.Service.Config
                 accessControls = new PlexSsoConfig.AccessControl[0];
             }
             return accessControls;
+        }
+
+        public string GetConfigurationDirectory()
+        {
+            return _configDirectory;
         }
     }
 }

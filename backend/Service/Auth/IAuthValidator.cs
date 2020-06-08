@@ -10,7 +10,8 @@ namespace PlexSSO.Service.Auth
             bool loggedIn,
             string serviceName,
             string serviceUri,
-            string userName
+            string userName,
+            bool failuresHaveOccurred = false
         );
     }
 }

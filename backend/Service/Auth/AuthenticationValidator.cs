@@ -24,7 +24,8 @@ namespace PlexSSO.Service.Auth
             bool loggedIn,
             string serviceName,
             string serviceUri,
-            string userName
+            string userName,
+            bool failuresHaveOccurred = false
         )
         {
             if (string.IsNullOrWhiteSpace(serviceName) ||
@@ -53,23 +54,50 @@ namespace PlexSSO.Service.Auth
                     block = !block;
                 }
 
-                if (block) {
+                if (block)
+                {
                     return new SsoResponse(
-                        true,
+                        !failuresHaveOccurred,
                         loggedIn,
                         true,
-                        AccessTier.NoAccess
+                        AccessTier.NoAccess,
+                        403,
+                        string.IsNullOrWhiteSpace(rule.BlockMessage) ? _configurationService.GetConfig().DefaultAccessDeniedMessage : rule.BlockMessage
                     );
                 }
 
                 numRules++;
             }
 
+            var globalBlocked = numRules == 0 ? accessTier == AccessTier.NoAccess : false;
+            var message = "";
+            var status = 200;
+            if (globalBlocked)
+            {
+                if (failuresHaveOccurred)
+                {
+                    status = 400;
+                    message = "An error occurred";
+                }
+                else if (loggedIn)
+                {
+                    status = 403;
+                    message = _configurationService.GetConfig().DefaultAccessDeniedMessage;
+                }
+                else
+                {
+                    status = 401;
+                    message = "Login Required";
+                }
+            }
+
             return new SsoResponse(
-                true,
+                !failuresHaveOccurred,
                 loggedIn,
-                numRules == 0 ? accessTier == AccessTier.NoAccess : false,
-                accessTier
+                globalBlocked,
+                accessTier,
+                status,
+                message
             );
         }
     }

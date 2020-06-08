@@ -117,12 +117,14 @@ class PlexOAuth extends EventEmitter {
         };
     }
 
-    async login(rememberMe, existingToken = null) {
+    async login(rememberMe, service, location, existingToken = null) {
         const token = existingToken || await this._getPlexToken();
         const response = await fetch('/api/v2/login', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-PlexSSO-For': service || '',
+                'X-PlexSSO-Original-URI': location || ''
             },
             body: JSON.stringify({
                 token: token,
@@ -143,17 +145,24 @@ class PlexOAuth extends EventEmitter {
         this._setLoggedInStatus({
             success: true,
             loggedIn: false,
-            tier: 'NoAccess'
+            tier: 'NoAccess',
+            accessBlocked: false,
+            message: ''
         });
         return this._loggedInStatus;
     }
 
-    async isLoggedIn() {
+    async isLoggedIn(service, location) {
         if (this._loggedInStatus !== null) {
             return this._loggedInStatus;
         }
 
-        const response = await fetch('/api/v2/sso');
+        const response = await fetch('/api/v2/sso', {
+            headers: {
+                'X-PlexSSO-For': service || '',
+                'X-PlexSSO-Original-URI': location || ''
+            }
+        });
         const json = await response.json();
         if (json.loggedIn) {
             this._setLoggedInStatus(json);
@@ -163,13 +172,15 @@ class PlexOAuth extends EventEmitter {
         // remember me
         const storedToken = localStorage.getItem('plex_token');
         if (!!storedToken) {
-            return await this.login(true, storedToken);
+            return await this.login(true, service, location, storedToken);
         }
 
         this._setLoggedInStatus({
             success: true,
             loggedIn: false,
-            tier: 'NoAccess'
+            tier: 'NoAccess',
+            accessBlocked: false,
+            message: ''
         });
         return this._loggedInStatus;
     }

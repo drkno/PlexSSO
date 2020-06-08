@@ -5,12 +5,12 @@ import './AccessDeniedPage.css';
 
 preloadImage(Marvin);
 
-const AccessDeniedPage = () => (
+const AccessDeniedPage = ({ message }) => (
     <div className="access-denied">
         <div className="access-denied-center">
             <img className="access-denied-item" src={Marvin} alt="Logo" />
             <br />
-            <p className="access-denied-item">Access Denied</p>
+            <p className="access-denied-item" dangerouslySetInnerHTML={{ __html: message || 'Access Denied'}}></p>
         </div>
     </div>  
 );

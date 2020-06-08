@@ -14,7 +14,8 @@ namespace PlexSSO
             WebHost.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
-                    config.AddCommandLine(args, new Dictionary<string, string>() {
+                    config.AddCommandLine(args, new Dictionary<string, string>()
+                    {
                         {"-s", "server"},
                         {"--server", "server"},
                         {"-p", "preferences"},

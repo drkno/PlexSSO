@@ -50,6 +50,7 @@ By default PlexSSO is configurable using a configuration stored in the `config.j
 | `plexPreferencesFile` | The path to your Plex `Preferences.xml` file, used to extract your Plex server identifier. This argument is relative to docker, so a volume must be configured in order to use this option. Additionally, it is mutually exclusive to `serverIdentifier` as it serves the same purpose. |
 | `cookieDomain` | The domain to use for the authentication cookie. If all of your services are on subdomains `*.example.com` and your SSO is at `login.example.com` then this should be set to `.example.com`. See [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies) for more information. |
 | `accessControls` | A section for defining rules about which users are allowed to access which services. The default rule is that all users with access to your Plex server have access to all services. This section takes the form of a map/dictionary, with the service names being the key (as passed from `nginx`/other reverse proxy via the `X-PlexSSO-For` header) to list/array of rules. |
+| `defaultAccessDeniedMessage` | The default message to show when an request is blocked but not by a rule. |
 
 #### Access Control Service Rules
 | Property              | Description |
@@ -58,6 +59,7 @@ By default PlexSSO is configurable using a configuration stored in the `config.j
 | `minimumAccessTier` | Access tier that is required at minimum for this rule. If `controlType` is `Block`, then users with access levels less than this will be blocked, and >= will be allowed. If `controlType` is `Allow` the reverse applies. Possible values are `Owner`, `HomeUser`, `NormalUser` and `NoAccess`. |
 | `controlType` | `Allow` or `Block`, changes the behaviour of `minimumAccessTier`. |
 | `exempt` | Usernames of users which should have the decision made by `minimumAccessTier` reversed. |
+| `blockMessage` | A custom message to deliver when access is denied due to this rule. Supports HTML. |
 
 ### CLI Arguments
 
@@ -65,7 +67,7 @@ _All CLI arguments have corresponding entries in the configuration file._
 
 | Argument             | Description |
 |----------------------|-------------|
-| `--config`           | The location to load the configuration file from. Defaults to `config.json` in the current working directory or `/config/config.json` if in Docker. |
+| `--config`           | The directory to load the configuration from. Defaults to the current working directory or `/config/` if in Docker. |
 | `-s`/`--server`      | See `serverIdentifier` in Configuration File section. |
 | `-p`/`--preferences` | See `plexPreferencesFile` in Configuration File section. |
 | `-c`/`--cookie-domain` | See `cookieDomain` in Configuration File section.  |

@@ -8,6 +8,7 @@ namespace PlexSSO.Model
         public const string UsernameClaim = "Username";
         public const string EmailClaim = "Email";
         public const string ThumbnailClaim = "Thumbnail";
-
+        public const string SsoServiceHeader = "X-PlexSSO-For";
+        public const string SsoOrigionalUriHeader = "X-PlexSSO-Original-URI";
     }
 }

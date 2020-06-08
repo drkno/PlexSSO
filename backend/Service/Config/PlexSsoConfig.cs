@@ -9,17 +9,21 @@ namespace PlexSSO.Service.Config
         public string ServerIdentifier { get; set; } = null;
         public string PlexPreferencesFile { get; set; } = null;
         public string CookieDomain { get; set; } = ".example.com";
-        public IDictionary<string, AccessControl[]> AccessControls { get; set; } = new Dictionary<string, AccessControl[]>() {
+        public string DefaultAccessDeniedMessage { get; set; } = "Access Denied";
+        public IDictionary<string, AccessControl[]> AccessControls { get; set; } = new Dictionary<string, AccessControl[]>()
+        {
             { "example-service", new AccessControl[] { new AccessControl() { Exempt = new string[] { "some-exempt-user" } } } }
         };
 
-        public override string ToString() {
+        public override string ToString()
+        {
             var accessControls = string.Join('\n', AccessControls.Select(control => $"{control.Key}: [\n"
                 + string.Join("\n\t", control.Value.Select(ctrl => ctrl.ToString())) + "\n]"));
             return $"ServerIdentifier = {ServerIdentifier}\n" +
                 $"PlexPreferencesFile = {PlexPreferencesFile}\n" +
                 $"CookieDomain = {CookieDomain}\n" +
-                $"AccessControls = {{\n{accessControls}\n}}";
+                $"AccessControls = {{\n{accessControls}\n}}\n" +
+                $"DefaultAccessDeniedMessage = {DefaultAccessDeniedMessage}";
         }
 
         public class AccessControl
@@ -28,12 +32,15 @@ namespace PlexSSO.Service.Config
             public AccessTier? MinimumAccessTier { get; set; } = AccessTier.NormalUser;
             public ControlType ControlType { get; set; } = ControlType.Block;
             public string[] Exempt { get; set; } = new string[0];
+            public string BlockMessage { get; set; } = "Access Denied";
 
-            public override string ToString() {
+            public override string ToString()
+            {
                 return $"Path = {Path}\n" +
                     $"MinimumAccessTier = {MinimumAccessTier}\n" +
                     $"ControlType = {ControlType}\n" +
-                    $"Exempt = [{string.Join(',', Exempt)}]";
+                    $"Exempt = [{string.Join(',', Exempt)}]\n" +
+                    $"BlockMessage = {BlockMessage}";
             }
         }
 

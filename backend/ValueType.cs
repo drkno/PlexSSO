@@ -6,8 +6,10 @@ namespace PlexSSO
     {
         public T Value { get; }
 
-        public ValueType(T token) {
-            if (token == null) {
+        public ValueType(T token)
+        {
+            if (token == null)
+            {
                 throw new ArgumentException("Provided argument cannot be null");
             }
             Value = token;
@@ -16,7 +18,8 @@ namespace PlexSSO
         public override bool Equals(object obj)
         {
             var other = obj as ValueType<T>;
-            if (other != null) {
+            if (other != null)
+            {
                 return Value.Equals(other.Value);
             }
             return Value.Equals(obj);
