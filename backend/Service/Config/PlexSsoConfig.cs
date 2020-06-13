@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using PlexSSO.Service.PlexClient;
@@ -15,6 +16,7 @@ namespace PlexSSO.Service.Config
             { "example-service", new AccessControl[] { new AccessControl() { Exempt = new string[] { "some-exempt-user" } } } }
         };
         public string OmbiPublicHostname { get; set; } = "";
+        public string TautulliPublicHostname { get; set; } = "";
 
         public override string ToString()
         {

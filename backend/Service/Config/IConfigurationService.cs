@@ -8,5 +8,6 @@ namespace PlexSSO.Service.Config
         AccessControl[] GetAccessControls(string serviceName);
         string GetConfigurationDirectory();
         string GetOmbiUrl();
+        string GetTautulliUrl();
     }
 }

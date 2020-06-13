@@ -12,6 +12,7 @@ using PlexSSO.Service.Auth;
 using PlexSSO.Service.Config;
 using PlexSSO.Service.OmbiClient;
 using PlexSSO.Service.PlexClient;
+using PlexSSO.Service.TautulliClient;
 
 namespace PlexSSO
 {
@@ -61,6 +62,7 @@ namespace PlexSSO
             services.AddSingleton<IConfigurationService>(ConfigurationService);
             services.AddSingleton<IAuthValidator, AuthenticationValidator>();
             services.AddSingleton<IOmbiTokenService, OmbiTokenService>();
+            services.AddSingleton<ITautulliTokenService, TautulliClient>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

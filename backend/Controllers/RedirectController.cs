@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using PlexSSO.Model;
 using PlexSSO.Service.Config;
 using PlexSSO.Service.OmbiClient;
+using PlexSSO.Service.TautulliClient;
 
 namespace PlexSSO.Controllers
 {
@@ -15,14 +16,17 @@ namespace PlexSSO.Controllers
     {
         private readonly IConfigurationService _configurationService;
         private readonly IOmbiTokenService _ombiTokenService;
+        private readonly ITautulliTokenService _tautulliTokenService;
         private readonly ILogger<RedirectController> _logger;
 
         public RedirectController(IConfigurationService configurationService,
                                   IOmbiTokenService ombiTokenService,
+                                  ITautulliTokenService tautulliTokenService,
                                   ILogger<RedirectController> logger)
         {
             _configurationService = configurationService;
             _ombiTokenService = ombiTokenService;
+            _tautulliTokenService = tautulliTokenService;
             _logger = logger;
         }
 
@@ -36,6 +40,9 @@ namespace PlexSSO.Controllers
                 case RedirectType.Ombi:
                     redirectStatus = await GenerateOmbiRedirect(redirectComponents);
                     break;
+                case RedirectType.Tautulli:
+                    redirectStatus = await GenerateTautulliRedirect(redirectComponents);
+                    break;
                 default:
                     redirectStatus = GenerateNormalRedirectUrl(redirectComponents);
                     break;
@@ -47,8 +54,8 @@ namespace PlexSSO.Controllers
         private async Task<int> GenerateOmbiRedirect((string, string, string) redirectComponents)
         {
             var (protocol, host, path) = redirectComponents;
-            var token = GetAuthenticatedUserToken();
-            var ombiToken = await _ombiTokenService.GetOmbiToken(token);
+            var plexToken = GetAuthenticatedUserToken();
+            var ombiToken = await _ombiTokenService.GetOmbiToken(plexToken);
             Response.Headers.Add("Location", protocol + host + "/auth/cookie");
             Response.Cookies.Append("Auth", ombiToken.Value, new CookieOptions() {
                 HttpOnly = false,
@@ -59,6 +66,22 @@ namespace PlexSSO.Controllers
                 Secure = false
             });
             return 302;
+        }
+
+        private async Task<int> GenerateTautulliRedirect((string, string, string) redirectComponents)
+        {
+            var (protocol, host, path) = redirectComponents;
+            var plexToken = GetAuthenticatedUserToken();
+            var tautulliToken = await _tautulliTokenService.GetTautulliToken(plexToken);
+            Response.Cookies.Append("tautulli_token_" + tautulliToken.UUID, tautulliToken.Value, new CookieOptions() {
+                HttpOnly = false,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.Now.AddDays(7),
+                Domain = _configurationService.GetConfig().CookieDomain,
+                Path = "/",
+                Secure = false
+            });
+            return GenerateNormalRedirectUrl(redirectComponents);
         }
 
         private int GenerateNormalRedirectUrl((string, string, string) redirectComponents)
@@ -73,6 +96,10 @@ namespace PlexSSO.Controllers
             if (_configurationService.GetOmbiUrl()?.Contains(redirectComponents.Item2) ?? false)
             {
                 return RedirectType.Ombi;
+            }
+            if (_configurationService.GetTautulliUrl()?.Contains(redirectComponents.Item2) ?? false)
+            {
+                return RedirectType.Tautulli;
             }
             return RedirectType.Normal;
         }

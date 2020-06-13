@@ -95,6 +95,11 @@ namespace PlexSSO.Service.Config
         {
             return _config.OmbiPublicHostname;
         }
+
+        public string GetTautulliUrl()
+        {
+            return _config.TautulliPublicHostname;
+        }
     }
 }
 
