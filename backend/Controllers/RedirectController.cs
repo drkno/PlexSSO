@@ -73,6 +73,7 @@ namespace PlexSSO.Controllers
             var (protocol, host, path) = redirectComponents;
             var plexToken = GetAuthenticatedUserToken();
             var tautulliToken = await _tautulliTokenService.GetTautulliToken(plexToken);
+            Response.Headers.Add("Location", protocol + host + "/home");
             Response.Cookies.Append("tautulli_token_" + tautulliToken.UUID, tautulliToken.Value, new CookieOptions() {
                 HttpOnly = false,
                 SameSite = SameSiteMode.Lax,
@@ -81,7 +82,7 @@ namespace PlexSSO.Controllers
                 Path = "/",
                 Secure = false
             });
-            return GenerateNormalRedirectUrl(redirectComponents);
+            return 302;
         }
 
         private int GenerateNormalRedirectUrl((string, string, string) redirectComponents)
