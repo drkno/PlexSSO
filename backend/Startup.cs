@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PlexSSO.Service.Auth;
 using PlexSSO.Service.Config;
+using PlexSSO.Service.OmbiClient;
 using PlexSSO.Service.PlexClient;
 
 namespace PlexSSO
@@ -59,6 +60,7 @@ namespace PlexSSO
             services.AddSingleton<IPlexClient, Client>();
             services.AddSingleton<IConfigurationService>(ConfigurationService);
             services.AddSingleton<IAuthValidator, AuthenticationValidator>();
+            services.AddSingleton<IOmbiTokenService, OmbiTokenService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
