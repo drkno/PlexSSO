@@ -27,7 +27,6 @@ namespace PlexSSO.Service.OmbiClient
             var request = new HttpRequestMessage(HttpMethod.Post, _configurationService.GetOmbiUrl() + "/api/v1/token/plextoken");
             request.Content = new StringContent($"{{\"plexToken\":\"{plexToken}\"}}", Encoding.UTF8, "application/json");
             request.Headers.Add("Accept", "application/json");
-            request.Headers.Add("Content-Type", "application/json");
 
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
