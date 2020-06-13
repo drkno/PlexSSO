@@ -52,9 +52,11 @@ namespace PlexSSO.Controllers
             Response.Headers.Add("Location", protocol + host + "/auth/cookie");
             Response.Cookies.Append("Auth", ombiToken.Value, new CookieOptions() {
                 HttpOnly = false,
-                SameSite = SameSiteMode.None,
-                Expires = DateTimeOffset.Now.AddMinutes(5),
-                Domain = _configurationService.GetConfig().CookieDomain
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.Now.AddHours(1),
+                Domain = _configurationService.GetConfig().CookieDomain,
+                Path = "/",
+                Secure = false
             });
             return 302;
         }
