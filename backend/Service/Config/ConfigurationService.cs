@@ -90,6 +90,11 @@ namespace PlexSSO.Service.Config
         {
             return _configDirectory;
         }
+
+        public string GetOmbiUrl()
+        {
+            return _config.OmbiPublicHostname;
+        }
     }
 }
 

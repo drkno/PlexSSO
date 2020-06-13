@@ -49,7 +49,7 @@ namespace PlexSSO.Controllers
         {
             try
             {
-                var token = new Token(data.Token);
+                var token = new PlexToken(data.Token);
                 var (accessTier, loggedIn) = GetAccessTier();
                 if (!loggedIn)
                 {

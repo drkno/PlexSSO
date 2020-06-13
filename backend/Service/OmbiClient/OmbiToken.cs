@@ -1,10 +1,10 @@
 using System;
 
-namespace PlexSSO.Service.PlexClient
+namespace PlexSSO.Service.OmbiClient
 {
-    public class PlexToken : ValueType<string>
+    public class OmbiToken : ValueType<string>
     {
-        public PlexToken(string token) : base(token)
+        public OmbiToken(string token) : base(token)
         {
             if (string.IsNullOrWhiteSpace(token))
             {

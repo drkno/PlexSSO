@@ -14,6 +14,7 @@ namespace PlexSSO.Service.Config
         {
             { "example-service", new AccessControl[] { new AccessControl() { Exempt = new string[] { "some-exempt-user" } } } }
         };
+        public string OmbiPublicHostname { get; set; } = "";
 
         public override string ToString()
         {
@@ -23,7 +24,8 @@ namespace PlexSSO.Service.Config
                 $"PlexPreferencesFile = {PlexPreferencesFile}\n" +
                 $"CookieDomain = {CookieDomain}\n" +
                 $"AccessControls = {{\n{accessControls}\n}}\n" +
-                $"DefaultAccessDeniedMessage = {DefaultAccessDeniedMessage}";
+                $"DefaultAccessDeniedMessage = {DefaultAccessDeniedMessage}\n" +
+                $"OmbiPublicHostname = {OmbiPublicHostname}";
         }
 
         public class AccessControl

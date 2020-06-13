@@ -16,7 +16,7 @@ namespace PlexSSO.Service.PlexClient
             _httpClient = clientFactory.CreateClient();
         }
 
-        public async Task<User> GetUserInfo(Token token)
+        public async Task<User> GetUserInfo(PlexToken token)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "https://plex.tv/users/account");
             request.Headers.Add("X-Plex-Product", "PlexSSO");
@@ -39,7 +39,7 @@ namespace PlexSSO.Service.PlexClient
             );
         }
 
-        private async Task<IEnumerable<(string, string, string)>> GetServers(Token token)
+        private async Task<IEnumerable<(string, string, string)>> GetServers(PlexToken token)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "https://plex.tv/api/resources");
             request.Headers.Add("includeHttps", "1");
@@ -89,7 +89,7 @@ namespace PlexSSO.Service.PlexClient
             return new ServerIdentifier(XDocument.Parse(File.ReadAllText(path)).Root.Attribute("ProcessedMachineIdentifier").Value);
         }
 
-        public async Task<AccessTier> GetAccessTier(ServerIdentifier serverId, Token token)
+        public async Task<AccessTier> GetAccessTier(ServerIdentifier serverId, PlexToken token)
         {
             try
             {

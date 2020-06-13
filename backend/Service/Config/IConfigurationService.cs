@@ -7,5 +7,6 @@ namespace PlexSSO.Service.Config
         PlexSsoConfig GetConfig();
         AccessControl[] GetAccessControls(string serviceName);
         string GetConfigurationDirectory();
+        string GetOmbiUrl();
     }
 }

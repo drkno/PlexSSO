@@ -43,6 +43,47 @@ namespace PlexSSO.Controllers
             return GetClaim(Constants.UsernameClaim, string.Empty);
         }
 
+        protected PlexToken GetAuthenticatedUserToken()
+        {
+            var token = GetClaim(Constants.AccessTokenClaim, null);
+            return token == null ? null : new PlexToken(token);
+        }
+
+        protected string GetProtocol()
+        {            
+            var headerValue = GetFirstHeader(
+                Constants.UpstreamProtocolHeader,
+                Constants.ForwardedProtoHeader,
+                Constants.FrontEndHttpsHeader,
+                Constants.ForwardedProtocolHeader,
+                Constants.ForwardedSslHeader,
+                Constants.UrlSchemeHeader
+            );
+            switch (headerValue)
+            {
+                case "on":
+                case "https":
+                    return "https://";
+                case "off":
+                case "http":
+                    return "http://";
+                default:
+                    goto case "on";
+            }
+        }
+
+        protected string GetFirstHeader(params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (HttpContext.Request.Headers.ContainsKey(key))
+                {
+                    return HttpContext.Request.Headers[key][0];
+                }
+            }
+            return null;
+        }
+
         private string GetHeader(string key, string defaultValue)
         {
             if (!HttpContext.Request.Headers.TryGetValue(key, out var headerValue))
