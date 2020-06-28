@@ -1,10 +1,13 @@
 {
     "name": "@plexauth/sso",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "private": true,
     "dependencies": {
+        "bootstrap": "^4.5.0",
         "react": "^16.13.1",
-        "react-dom": "^16.13.1",
+        "react-dom": "^16.13.1"
+    },
+    "devDependencies": {
         "react-scripts": "^3.4.1"
     },
     "scripts": {
