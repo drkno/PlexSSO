@@ -6,12 +6,21 @@ An nginx `auth_request` Single Sign On service, using [Plex](https://plex.tv) as
 
 This is designed to sit in front of various services and replace their authentication with a single unified login. It is compatible with services such as:
 
-- Sonarr
-- Radarr
+- Bazarr
 - Deluge
-- Sabnzbd
-- NzbHydra (v1 and v2)
 - Jackett
+- Lidarr
+- NzbHydra (v1 and v2)
+- NzbGet
+- Ombi
+- Radarr
+- Readarr
+- Sabnzbd
+- Sonarr
+- Transcoderr
+- Transmission
+
+and more. Unlike other SSO providers such as [Organizr](https://github.com/causefx/Organizr) it is stand-alone so isn't tied to any usage pattern or front-end.
 
 ### Installation
 
@@ -29,10 +38,12 @@ By default PlexSSO is configurable using a configuration stored in the `config.j
   "serverIdentifier": "0123456789abcdef0123456789abcdef01234567",
   "plexPreferencesFile": null,
   "cookieDomain": ".example.com",
+  "defaultAccessDeniedMessage": "Access Denied",
   "accessControls": {
     "example-service": [
       {
         "path": "/",
+        "blockMessage": "Access Denied.<br />Please use <a href='https://ombi.example.com'>Ombi</a> instead.",
         "minimumAccessTier": "NormalUser",
         "controlType": "Block",
         "exempt": [
@@ -40,7 +51,9 @@ By default PlexSSO is configurable using a configuration stored in the `config.j
         ]
       }
     ]
-  }
+  },
+  "ombiPublicHostname": "https://ombi.example.com",
+  "tautulliPublicHostname": "https://plexpy.example.com"
 }
 ```
 
@@ -60,6 +73,8 @@ By default PlexSSO is configurable using a configuration stored in the `config.j
 | `controlType` | `Allow` or `Block`, changes the behaviour of `minimumAccessTier`. |
 | `exempt` | Usernames of users which should have the decision made by `minimumAccessTier` reversed. |
 | `blockMessage` | A custom message to deliver when access is denied due to this rule. Supports HTML. |
+| `ombiPublicHostname` | The public facing hostname of Ombi (if present), must be reachable from PlexSSO. Will authenticate the user with Ombi using Ombi's native authentication allowing them to use their own account with the SSO. |
+| `tautulliPublicHostname` | The public facing hostname of Tautulli/PlexPy (if present), must be reachable from PlexSSO. Will authenticate the user with Tautulli using Tautulli's native authentication allowing them to use their own account with the SSO. |
 
 ### CLI Arguments
 
