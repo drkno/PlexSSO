@@ -1,0 +1,31 @@
+name: Pubish Docker image
+on:
+    push:
+        branches:
+            - master
+env:
+    IMAGE_NAME: plexsso
+jobs:
+    push_to_registries:
+        name: Push Docker image
+        runs-on: ubuntu-latest
+        steps:
+          - name: Check out the repo
+            uses: actions/checkout@v2
+            with:
+                submodules: true
+          - name: Push to Docker Hub
+            uses: docker/build-push-action@v1
+            with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+                repository: drkno/plexsso
+                tag_with_ref: true
+          - name: Push to GitHub Packages
+            uses: docker/build-push-action@v1
+            with:
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
+                registry: docker.pkg.github.com
+                repository: drkno/plexsso/plexsso
+                tag_with_ref: true
