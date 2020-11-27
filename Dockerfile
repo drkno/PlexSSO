@@ -4,7 +4,7 @@ WORKDIR /ui
 RUN yarn && \
     yarn build
 
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1 as aspnet-builder
+FROM mcr.microsoft.com/dotnet/sdk:5.0 as aspnet-builder
 COPY ./backend /backend
 WORKDIR /backend
 RUN dotnet restore && \
@@ -12,7 +12,7 @@ RUN dotnet restore && \
     rm build/ui/index.html
 COPY --from=react-builder /ui/build /backend/build/ui
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS runtime
 WORKDIR /app
 COPY --from=aspnet-builder /backend/build /app
 RUN mkdir -p /config && \
