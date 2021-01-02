@@ -31,7 +31,9 @@ namespace PlexSSO
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDataProtection()
-                .PersistKeysToFileSystem(new DirectoryInfo(ConfigurationService.GetConfigurationDirectory()));
+                .PersistKeysToFileSystem(new DirectoryInfo(ConfigurationService.GetConfigurationDirectory()))
+                .SetDefaultKeyLifetime(TimeSpan.FromDays(500))
+                .SetApplicationName("PlexSSO");
             
             services.AddControllersWithViews().AddJsonOptions(opt =>
             {
