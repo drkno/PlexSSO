@@ -89,15 +89,16 @@ namespace PlexSSO.Controllers
             var port = Request.Host.Port.HasValue ? $":{Request.Host.Port.Value}" : "";
             var spl = Request.Host.Host.Split('.');
             string host;
-            if (spl.Length < 3)
+            if (spl.Length < 2)
             {
                 host = "." + Request.Host.Host;
+                return subdomain + host + port;
             }
             else
             {
                 host = Request.Host.Host.Substring(Request.Host.Host.IndexOf('.'));
             }
-            return subdomain + host + port;
+            return host + port;
         }
     }
 }
