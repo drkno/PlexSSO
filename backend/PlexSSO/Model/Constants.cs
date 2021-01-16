@@ -9,6 +9,7 @@ namespace PlexSSO.Model
         public const int PortNumber = 4200;
         public const string ApiPrefix = "api/v2/";
         public const string ControllerPath = ApiPrefix + "[controller]";
+        public const string HealthcheckPath = "/" + ApiPrefix + "healthcheck";
         public const string FourOhThreePath = "/sso/403";
 
         public const string CookieName = "kPlexSSOKookieV2";

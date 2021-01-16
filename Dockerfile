@@ -20,4 +20,4 @@ RUN mkdir -p /config && \
 ENTRYPOINT ["dotnet", "PlexSSO.dll", "--config", "/config/"]
 EXPOSE 4200
 VOLUME [ "/config" ]
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD [ "curl", "--fail", "http://localhost:4200/api/v2/healthcheck" ]
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD [ "dotnet", "PlexSSO.dll", "--healthcheck" ]

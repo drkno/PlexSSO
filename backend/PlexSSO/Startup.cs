@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using PlexSSO.Model;
 using PlexSSO.Model.Internal;
@@ -57,7 +58,7 @@ namespace PlexSSO
                     }
                 });
             services.AddHealthChecks();
-            services.AddSingleton(ConfigurationService);
+            services.TryAddSingleton(ConfigurationService);
             ServiceRegistry.RegisterServices(services);
         }
 
@@ -88,7 +89,7 @@ namespace PlexSSO
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(name: "default", pattern: "{controller}/{action=Index}/{id?}");
-                endpoints.MapHealthChecks($"/{Constants.ApiPrefix}healthcheck");
+                endpoints.MapHealthChecks(Constants.HealthcheckPath);
             });
         }
     }
