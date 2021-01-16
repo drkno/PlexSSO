@@ -32,6 +32,8 @@ namespace PlexSSO
                 .PersistKeysToFileSystem(new DirectoryInfo(ConfigurationService.GetConfigurationDirectory()))
                 .SetDefaultKeyLifetime(TimeSpan.FromDays(Constants.KeyLifeSpanDays))
                 .SetApplicationName(Constants.ApplicationName);
+
+            services.AddAntiforgery(options => options.Cookie.Name = Constants.CsrfCookieName);
             
             services.AddControllersWithViews().AddJsonOptions(opt =>
             {

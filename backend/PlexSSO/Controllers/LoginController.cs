@@ -33,6 +33,7 @@ namespace PlexSSO.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<SsoResponse> Login([FromBody] LoginPost data)
         {
             try
