@@ -55,7 +55,7 @@ namespace PlexSSO.Service.OverseerrClient
 
             return new AuthenticationToken(
                 OverseerrCookieName,
-                cookie.Value.Value,
+                Uri.UnescapeDataString(cookie.Value.Value),
                 cookie.Expires ?? DateTimeOffset.Now.AddDays(Constants.RedirectCookieExpireDays)
             );
         }
