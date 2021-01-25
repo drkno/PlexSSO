@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PlexSSO.Extensions;
 using PlexSSO.Model.API;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
@@ -56,7 +57,7 @@ namespace PlexSSO.Controllers
                 ? path
                 : authenticationToken.Location;
             Response.Headers.Add("Location", protoString + host + location);
-            Response.Cookies.Append(authenticationToken.CookieName, authenticationToken.CookieValue, new CookieOptions
+            Response.Cookies.AppendWithoutEncoding(authenticationToken.CookieName, authenticationToken.CookieValue, new CookieOptions
             {
                 HttpOnly = false,
                 SameSite = SameSiteMode.Lax,
