@@ -4,7 +4,7 @@ WORKDIR /ui
 RUN yarn && \
     yarn build
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0 as aspnet-builder
+FROM mcr.microsoft.com/dotnet/sdk:5.0.102-ca-patch-buster-slim as aspnet-builder
 COPY ./backend /backend
 WORKDIR /backend
 RUN dotnet restore && \
