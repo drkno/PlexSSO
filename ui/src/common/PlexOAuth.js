@@ -1,4 +1,5 @@
-const sleep = async(timeout) => new Promise(resolve => window.setTimeout(resolve, timeout));
+import Cookie from './Cookie';
+import { sleep } from './utils';
 
 const PlexHeaders = {
     'Accept': 'application/json',
@@ -6,6 +7,8 @@ const PlexHeaders = {
     'X-Plex-Version': 'Plex OAuth',
     'X-Plex-Client-Identifier': 'PlexSSOv2'
 };
+
+const CsrfHeaderName = 'X-PlexSSO-CSRF-Token';
 
 class EventEmitter {
     constructor() {
@@ -119,12 +122,16 @@ class PlexOAuth extends EventEmitter {
 
     async login(rememberMe, service, location, existingToken = null) {
         const token = existingToken || await this._getPlexToken();
+        const csrfCookie = Cookie.getCookiesForString(document.cookie)
+            .filter(cookie => cookie.getName() === CsrfHeaderName)
+            .map(cookie => cookie.getValue())[0] || '';
         const response = await fetch('/api/v2/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-PlexSSO-For': service || '',
-                'X-PlexSSO-Original-URI': location || ''
+                'X-PlexSSO-Original-URI': location || '',
+                [CsrfHeaderName]: csrfCookie
             },
             body: JSON.stringify({
                 token: token,

@@ -18,6 +18,7 @@ namespace PlexSSO.Model
         public const int KeyLifeSpanDays = 500;
 
         public const string CsrfCookieName = "kPlexSSOCsrfKookie";
+        public const string CsrfHeaderName = "X-PlexSSO-CSRF-Token";
 
         public const string PoweredByHeaderName = "X-Powered-By";
         public const string PoweredByHeaderValue = "One small piece of fairy cake";

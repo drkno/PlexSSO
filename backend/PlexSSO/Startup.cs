@@ -1,10 +1,12 @@
 using System;
 using System.IO;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -33,7 +35,11 @@ namespace PlexSSO
                 .SetDefaultKeyLifetime(TimeSpan.FromDays(Constants.KeyLifeSpanDays))
                 .SetApplicationName(Constants.ApplicationName);
 
-            services.AddAntiforgery(options => options.Cookie.Name = Constants.CsrfCookieName);
+            services.AddAntiforgery(options =>
+            {
+                options.Cookie.Name = Constants.CsrfCookieName;
+                options.HeaderName = Constants.CsrfHeaderName;
+            });
             
             services.AddControllersWithViews().AddJsonOptions(opt =>
             {
@@ -64,7 +70,7 @@ namespace PlexSSO
             ServiceRegistry.RegisterServices(services);
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IAntiforgery antiForgery)
         {
             if (env.IsDevelopment())
             {
@@ -75,6 +81,8 @@ namespace PlexSSO
                 app.UseExceptionHandler(Constants.FourOhThreePath);
             }
             app.Use((context, next) => {
+                var tokens = antiForgery.GetAndStoreTokens(context);
+                context.Response.Cookies.Append(Constants.CsrfHeaderName, tokens.RequestToken, new CookieOptions { HttpOnly = false });
                 context.Response.Headers.Add(Constants.PoweredByHeaderName, Constants.PoweredByHeaderValue);
                 return next.Invoke();
             });
