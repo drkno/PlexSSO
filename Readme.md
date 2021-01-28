@@ -1,6 +1,6 @@
 # PlexSSO
 
-![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/drkno/plexsso?style=flat-square)
+![Docker Publish Status](https://github.com/drkno/PlexSSOv2/workflows/Publish%20Docker%20image/badge.svg)
 
 An nginx `auth_request` Single Sign On service, using [Plex](https://plex.tv) as the upstream authorisation provider.
 

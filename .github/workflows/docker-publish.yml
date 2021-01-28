@@ -1,8 +1,12 @@
-name: Pubish Docker image
+name: Publish Docker image
 on:
     push:
         branches:
             - master
+    workflow_dispatch:
+        description: 'Reason'
+        required: false
+        default: 'Manual Run'
 env:
     IMAGE_NAME: plexsso
 jobs:
@@ -20,12 +24,4 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
                 repository: drkno/plexsso
-                tag_with_ref: true
-          - name: Push to GitHub Packages
-            uses: docker/build-push-action@v1
-            with:
-                username: ${{ github.actor }}
-                password: ${{ secrets.GITHUB_TOKEN }}
-                registry: docker.pkg.github.com
-                repository: drkno/plexsso/plexsso
                 tag_with_ref: true
