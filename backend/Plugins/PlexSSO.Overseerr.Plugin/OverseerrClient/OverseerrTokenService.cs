@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using PlexSSO.Extensions;
 using PlexSSO.Model;
 using PlexSSO.Model.Internal;
@@ -19,19 +20,21 @@ namespace PlexSSO.Overseerr.Plugin.OverseerrClient
 
         private readonly HttpClient _httpClient;
         private readonly IConfigurationService<PlexSsoConfig> _configurationService;
+        private readonly ILogger<OverseerrTokenService> _logger;
 
         public OverseerrTokenService(IHttpClientFactory clientFactory,
-                                     IConfigurationService<PlexSsoConfig> configurationService)
+                                     IConfigurationService<PlexSsoConfig> configurationService,
+                                     ILogger<OverseerrTokenService> logger)
         {
             _httpClient = clientFactory.CreateClient();
             _configurationService = configurationService;
+            _logger = logger;
         }
 
         public bool Matches((Protocol, string, string) redirectComponents)
         {
-            return true;
-            // var (_, hostname, _) = redirectComponents;
-            // return GetHostname().Contains(hostname);
+            var (_, hostname, _) = redirectComponents;
+            return GetHostname().Contains(hostname);
         }
 
         public async Task<AuthenticationToken> GetServiceToken(Identity identity)
@@ -49,7 +52,9 @@ namespace PlexSSO.Overseerr.Plugin.OverseerrClient
 
             if (cookie == null)
             {
-                Console.WriteLine("Authentication cookie was not returned from Overseerr");
+                var respStr = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Authentication cookie was not returned from Overseerr");
+                _logger.LogWarning(respStr);
                 return null;
             }
 

@@ -9,6 +9,7 @@ using PlexSSO.Model.API;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
 using PlexSSO.Service;
+using PlexSSO.Service.Config;
 
 namespace PlexSSO.Controllers
 {
@@ -16,11 +17,11 @@ namespace PlexSSO.Controllers
     [Route("[controller]")]
     public class RedirectController : CommonAuthController
     {
-        private readonly Service.Config.IConfigurationService<PlexSsoConfig> _configurationService;
+        private readonly IConfigurationService<PlexSsoConfig> _configurationService;
         private readonly IEnumerable<ITokenService> _tokenServices;
         private readonly ILogger<RedirectController> _logger;
 
-        public RedirectController(Service.Config.IConfigurationService<PlexSsoConfig> configurationService,
+        public RedirectController(IConfigurationService<PlexSsoConfig> configurationService,
                                   IEnumerable<ITokenService> tokenServices,
                                   ILogger<RedirectController> logger)
         {
@@ -40,7 +41,6 @@ namespace PlexSSO.Controllers
             AuthenticationToken authToken;
             if (service != null && (authToken = await service.GetServiceToken(Identity)) != null)
             {
-                _logger.LogInformation("Attempting service specific redirect");
                 redirectStatus = GenerateRedirect(authToken, redirectComponents);
             }
             else
@@ -70,6 +70,7 @@ namespace PlexSSO.Controllers
                 Path = "/",
                 Secure = false
             });
+            _logger.LogInformation($"Performing service specific redirect to '{location}' with status {authenticationToken.StatusCode}");
             return authenticationToken.StatusCode;
         }
 
@@ -77,7 +78,9 @@ namespace PlexSSO.Controllers
         {
             var (protocol, host, path) = redirectComponents;
             var protoString = protocol == Protocol.Https ? "https://" : "http://";
-            Response.Headers.Add("Location", protoString + host + path);
+            var location = protoString + host + path;
+            Response.Headers.Add("Location", location);
+            _logger.LogInformation($"Performing normal redirect to '{location}' with status 302");
             return 302;
         }
 
