@@ -3,12 +3,15 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using PlexSSO.Extensions;
 using PlexSSO.Model;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
+using PlexSSO.Service;
 using PlexSSO.Service.Config;
+using PlexSSO.Tautulli.Plugin.Model;
 
-namespace PlexSSO.Service.TautulliClient
+namespace PlexSSO.Tautulli.Plugin.TautulliClient
 {
     public class TautulliTokenService : ITokenService
     {
@@ -25,12 +28,12 @@ namespace PlexSSO.Service.TautulliClient
         public bool Matches((Protocol, string, string) redirectComponents)
         {
             var (_, hostname, _) = redirectComponents;
-            return _configurationService.Config.TautulliPublicHostname?.Contains(hostname) ?? false;
+            return GetHostname().Contains(hostname);
         }
 
         public async Task<AuthenticationToken> GetServiceToken(Identity identity)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, _configurationService.Config.TautulliPublicHostname + "/auth/signin");
+            var request = new HttpRequestMessage(HttpMethod.Post, GetHostname() + "/auth/signin");
             request.Content = new StringContent($"username=&password=&token={identity.AccessToken.Value}&remember_me=1",
                 Encoding.UTF8,
                 "application/x-www-form-urlencoded");
@@ -61,6 +64,13 @@ namespace PlexSSO.Service.TautulliClient
                 "/home"
             );
         }
+
+        private string GetHostname()
+        {
+            return _configurationService.Config
+                .Plugins
+                .GetOrDefault(TautulliConstants.PluginName)?
+                .GetOrDefault(TautulliConstants.PublicHostname) ?? "";
+        }
     }
 }
-

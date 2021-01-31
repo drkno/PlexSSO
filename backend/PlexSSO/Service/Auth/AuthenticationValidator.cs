@@ -4,21 +4,18 @@ using PlexSSO.Extensions;
 using PlexSSO.Model.API;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
-using PlexSSO.Service.Config;
 using static PlexSSO.Model.Internal.PlexSsoConfig;
 
 namespace PlexSSO.Service.Auth
 {
     public class AuthenticationValidator : IAuthValidator
     {
-        private readonly IConfigurationService<PlexSsoConfig> _configurationService;
-        private readonly ILogger<AuthenticationValidator> _logger;
+        private readonly Config.IConfigurationService<PlexSsoConfig> _configurationService;
 
-        public AuthenticationValidator(IConfigurationService<PlexSsoConfig> configurationService,
+        public AuthenticationValidator(Config.IConfigurationService<PlexSsoConfig> configurationService,
                                        ILogger<AuthenticationValidator> logger)
         {
             _configurationService = configurationService;
-            _logger = logger;
         }
 
         public SsoResponse ValidateAuthenticationStatus(
@@ -27,17 +24,6 @@ namespace PlexSSO.Service.Auth
             ServiceUri serviceUri
         )
         {
-            if (serviceName == null ||
-                serviceUri == null ||
-                identity.Username == null)
-            {
-                _logger.LogWarning("Some properties which should not be null/empty were null/empty.\n" +
-                    "Did you forget to add a header in your reverse proxy?\n" +
-                    $"\tserviceName = {serviceName}\n" +
-                    $"\tserviceUri = {serviceUri}\n" +
-                    $"\tuserName = {identity.Username}");
-            }
-
             var (controlledByRules, matchingAccessControl) = GetFirstMatchingAccessControl(serviceName, serviceUri, identity);
             if (matchingAccessControl != null)
             {

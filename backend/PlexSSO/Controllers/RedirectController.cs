@@ -3,12 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using PlexSSO.Extensions;
 using PlexSSO.Model.API;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
 using PlexSSO.Service;
-using PlexSSO.Service.Config;
 
 namespace PlexSSO.Controllers
 {
@@ -16,14 +16,17 @@ namespace PlexSSO.Controllers
     [Route("[controller]")]
     public class RedirectController : CommonAuthController
     {
-        private readonly IConfigurationService<PlexSsoConfig> _configurationService;
+        private readonly Service.Config.IConfigurationService<PlexSsoConfig> _configurationService;
         private readonly IEnumerable<ITokenService> _tokenServices;
+        private readonly ILogger<RedirectController> _logger;
 
-        public RedirectController(IConfigurationService<PlexSsoConfig> configurationService,
-                                  IEnumerable<ITokenService> tokenServices)
+        public RedirectController(Service.Config.IConfigurationService<PlexSsoConfig> configurationService,
+                                  IEnumerable<ITokenService> tokenServices,
+                                  ILogger<RedirectController> logger)
         {
             _configurationService = configurationService;
             _tokenServices = tokenServices;
+            _logger = logger;
         }
 
         [HttpGet("{*location}")]
@@ -34,14 +37,15 @@ namespace PlexSSO.Controllers
 
             var service = _tokenServices.FirstOrDefault(tokenService => tokenService.Matches(redirectComponents));
 
-            if (service == null)
+            AuthenticationToken authToken;
+            if (service != null && (authToken = await service.GetServiceToken(Identity)) != null)
             {
-                redirectStatus = GenerateNormalRedirectUrl(redirectComponents);
+                _logger.LogInformation("Attempting service specific redirect");
+                redirectStatus = GenerateRedirect(authToken, redirectComponents);
             }
             else
             {
-                var authToken = await service.GetServiceToken(Identity);
-                redirectStatus = GenerateRedirect(authToken, redirectComponents);
+                redirectStatus = GenerateNormalRedirectUrl(redirectComponents);
             }
 
             Response.StatusCode = redirectStatus;

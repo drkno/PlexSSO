@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using PlexSSO.Model.Types;
 
 namespace PlexSSO.Model.Internal
@@ -8,6 +10,10 @@ namespace PlexSSO.Model.Internal
     {
         [CliArgument("config")]
         public string ConfigFile { get; set; } = "config.json";
+
+        [CliArgument("plugin_path")]
+        public string PluginDirectory { get; set; } =
+            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
         [CliArgument("server", "s")]
         public ServerIdentifier ServerIdentifier { get; set; } = null;
@@ -20,11 +26,45 @@ namespace PlexSSO.Model.Internal
         public string DefaultAccessDeniedMessage { get; set; } = "Access Denied";
         public IDictionary<string, AccessControl[]> AccessControls { get; set; } = new Dictionary<string, AccessControl[]>()
         {
-            { "example-service", new[] { new AccessControl() { Exempt = new[] { new Username("some-exempt-user")  } } } }
+            { "example-service", new[] { new AccessControl { Exempt = new[] { new Username("some-exempt-user")  } } } }
         };
-        public string OmbiPublicHostname { get; set; } = "";
-        public string TautulliPublicHostname { get; set; } = "";
-        public string OverseerrPublicHostname { get; set; } = "";
+        public IDictionary<string, IDictionary<string, string>> Plugins { get; set; } = new Dictionary<string, IDictionary<string, string>>();
+
+        public string OmbiPublicHostname
+        {
+            set
+            {
+                Plugins ??= new Dictionary<string, IDictionary<string, string>>();
+                Plugins["ombi"] = new Dictionary<string, string>()
+                {
+                    { "publicHostname", value }
+                };
+            }
+        }
+
+        public string TautulliPublicHostname
+        {
+            set
+            {
+                Plugins ??= new Dictionary<string, IDictionary<string, string>>();
+                Plugins["tautulli"] = new Dictionary<string, string>()
+                {
+                    { "publicHostname", value }
+                };
+            }
+        }
+
+        public string OverseerrPublicHostname
+        {
+            set
+            {
+                Plugins ??= new Dictionary<string, IDictionary<string, string>>();
+                Plugins["overseerr"] = new Dictionary<string, string>()
+                {
+                    { "publicHostname", value }
+                };
+            }
+        }
 
         public override string ToString()
         {
@@ -34,8 +74,7 @@ namespace PlexSSO.Model.Internal
                    $"PlexPreferencesFile = {PlexPreferencesFile}\n" +
                    $"CookieDomain = {CookieDomain}\n" +
                    $"AccessControls = {{\n{accessControls}\n}}\n" +
-                   $"DefaultAccessDeniedMessage = {DefaultAccessDeniedMessage}\n" +
-                   $"OmbiPublicHostname = {OmbiPublicHostname}";
+                   $"DefaultAccessDeniedMessage = {DefaultAccessDeniedMessage}";
         }
 
         public class AccessControl

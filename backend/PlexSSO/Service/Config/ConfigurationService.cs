@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
@@ -39,18 +40,12 @@ namespace PlexSSO.Service.Config
                 WriteIndented = true
             };
 
-            T config;
-            if (File.Exists(configFile))
-            {
-                config = JsonSerializer.Deserialize<T>(File.ReadAllText(configFile), serialiserConfig);
-                UpdateConfigWithCliOptions(ref config, configuration);
-            }
-            else
-            {
-                config = Activator.CreateInstance<T>();
-                UpdateConfigWithCliOptions(ref config, configuration);
-                File.WriteAllText(configFile, JsonSerializer.Serialize(config, serialiserConfig));
-            }
+            var config = File.Exists(configFile)
+                ? JsonSerializer.Deserialize<T>(File.ReadAllText(configFile), serialiserConfig)
+                : Activator.CreateInstance<T>();
+
+            UpdateConfigWithCliOptions(ref config, configuration);
+            File.WriteAllText(configFile, JsonSerializer.Serialize(config, serialiserConfig), Encoding.UTF8);
 
             return config;
         }

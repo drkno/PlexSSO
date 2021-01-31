@@ -8,7 +8,7 @@ FROM mcr.microsoft.com/dotnet/sdk:5.0.102-ca-patch-buster-slim as aspnet-builder
 COPY ./backend /backend
 WORKDIR /backend
 RUN dotnet restore && \
-    dotnet publish PlexSSO.sln -c Release -o build && \
+    dotnet publish PlexSSO.sln -c Release -o build /p:CopyOutputSymbolsToPublishDirectory=false && \
     rm build/ui/index.html
 COPY --from=react-builder /ui/build /backend/build/ui
 

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
@@ -44,6 +46,15 @@ namespace PlexSSO.Extensions
             }
 
             return (IHeaderDictionary) _headerPropertyInfo.GetValue(responseCookies);
+        }
+
+        public static SetCookieHeaderValue[] GetCookies(this HttpResponseHeaders headers)
+        {
+            return headers
+                .Where(header => header.Key == "Set-Cookie")
+                .SelectMany(header => header.Value)
+                .Select(value => SetCookieHeaderValue.Parse(value))
+                .ToArray();
         }
     }
 }

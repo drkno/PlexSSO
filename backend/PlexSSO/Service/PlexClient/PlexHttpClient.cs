@@ -6,17 +6,15 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
-using PlexSSO.Service.Config;
 
 namespace PlexSSO.Service.PlexClient
 {
     public class PlexHttpClient : IPlexClient
     {
         private readonly HttpClient _httpClient;
-        private readonly IConfigurationService<PlexSsoConfig> _configurationService;
+        private readonly Config.IConfigurationService<PlexSsoConfig> _configurationService;
 
-        public PlexHttpClient(IHttpClientFactory clientFactory,
-                              IConfigurationService<PlexSsoConfig> configurationService)
+        public PlexHttpClient(IHttpClientFactory clientFactory, Config.IConfigurationService<PlexSsoConfig> configurationService)
         {
             _configurationService = configurationService;
             _httpClient = clientFactory.CreateClient();

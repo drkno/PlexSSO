@@ -15,6 +15,7 @@ using PlexSSO.Model;
 using PlexSSO.Model.Internal;
 using PlexSSO.Service;
 using PlexSSO.Service.Config;
+using PlexSSO.Service.Plugin;
 
 namespace PlexSSO
 {
@@ -68,6 +69,7 @@ namespace PlexSSO
             services.AddHealthChecks();
             services.TryAddSingleton(ConfigurationService);
             ServiceRegistry.RegisterServices(services);
+            PluginLoader.LoadPlugins(ConfigurationService, services);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IAntiforgery antiForgery)

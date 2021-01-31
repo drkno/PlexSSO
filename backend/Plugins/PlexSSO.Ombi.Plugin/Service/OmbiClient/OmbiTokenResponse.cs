@@ -1,4 +1,4 @@
-namespace PlexSSO.Service.OmbiClient
+namespace PlexSSO.Ombi.Plugin.Service.OmbiClient
 {
     public class OmbiTokenResponse
     {

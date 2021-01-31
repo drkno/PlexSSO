@@ -3,13 +3,15 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Net.Http.Headers;
+using PlexSSO.Extensions;
 using PlexSSO.Model;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
+using PlexSSO.Overseerr.Plugin.Model;
+using PlexSSO.Service;
 using PlexSSO.Service.Config;
 
-namespace PlexSSO.Service.OverseerrClient
+namespace PlexSSO.Overseerr.Plugin.OverseerrClient
 {
     public class OverseerrTokenService : ITokenService
     {
@@ -27,13 +29,14 @@ namespace PlexSSO.Service.OverseerrClient
 
         public bool Matches((Protocol, string, string) redirectComponents)
         {
-            var (_, hostname, _) = redirectComponents;
-            return _configurationService.Config.OverseerrPublicHostname?.Contains(hostname) ?? false;
+            return true;
+            // var (_, hostname, _) = redirectComponents;
+            // return GetHostname().Contains(hostname);
         }
 
         public async Task<AuthenticationToken> GetServiceToken(Identity identity)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, _configurationService.Config.OverseerrPublicHostname + "/api/v1/auth/login");
+            var request = new HttpRequestMessage(HttpMethod.Post, GetHostname() + "/api/v1/auth/login");
             request.Content = new StringContent($"{{\"authToken\":\"{identity.AccessToken.Value}\"}}", Encoding.UTF8, "application/json");
             request.Headers.Add("Accept", "application/json");
             request.Headers.Add("User-Agent", "PlexSSO/2");
@@ -41,23 +44,29 @@ namespace PlexSSO.Service.OverseerrClient
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            var cookieString = response.Headers
-                .Where(header => header.Key == "Set-Cookie")
-                .Select(header => header.Value.SingleOrDefault())
-                .SingleOrDefault(value => value?.Contains(OverseerrCookieName) ?? false);
+            var cookie = response.Headers.GetCookies()
+                .FirstOrDefault(c => c.Name == OverseerrCookieName);
 
-            if (string.IsNullOrWhiteSpace(cookieString))
+            if (cookie == null)
             {
+                Console.WriteLine("Authentication cookie was not returned from Overseerr");
                 return null;
             }
-
-            var cookie = SetCookieHeaderValue.Parse(cookieString);
 
             return new AuthenticationToken(
                 OverseerrCookieName,
                 Uri.UnescapeDataString(cookie.Value.Value),
-                cookie.Expires ?? DateTimeOffset.Now.AddDays(Constants.RedirectCookieExpireDays)
+                cookie.Expires ?? DateTimeOffset.Now.AddDays(Constants.RedirectCookieExpireDays),
+                "/"
             );
+        }
+
+        private string GetHostname()
+        {
+            return _configurationService.Config
+                .Plugins
+                .GetOrDefault(OverseerrConstants.PluginName)?
+                .GetOrDefault(OverseerrConstants.PublicHostname) ?? "";
         }
     }
 }

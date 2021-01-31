@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
-namespace PlexSSO.Extensions
+namespace PlexSSO.Ombi.Plugin.Extensions
 {
     // https://github.com/YohDeadfall/corefx/blob/5ef51a3e6bb0ee752264c81a7e9496bda958619d/src/System.Text.Json/src/System/Text/Json/Serialization/JsonSnakeCaseNamingPolicy.cs
     public class SnakeCaseNamingPolicy : JsonNamingPolicy
