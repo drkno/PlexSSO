@@ -39,7 +39,7 @@ namespace PlexSSO.Overseerr.Plugin.OverseerrClient
 
         public async Task<AuthenticationToken> GetServiceToken(Identity identity)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, GetHostname() + "/api/v1/auth/login");
+            var request = new HttpRequestMessage(HttpMethod.Post, GetHostname() + "/api/v1/auth/plex");
             request.Content = new StringContent($"{{\"authToken\":\"{identity.AccessToken.Value}\"}}", Encoding.UTF8, "application/json");
             request.Headers.Add("Accept", "application/json");
             request.Headers.Add("User-Agent", "PlexSSO/2");
