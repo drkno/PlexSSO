@@ -86,3 +86,7 @@ _All CLI arguments have corresponding entries in the configuration file._
 | `-s`/`--server`      | See `serverIdentifier` in Configuration File section. |
 | `-p`/`--preferences` | See `plexPreferencesFile` in Configuration File section. |
 | `-c`/`--cookie-domain` | See `cookieDomain` in Configuration File section.  |
+
+### Contributing
+
+Contributions welcome via pull requests and issues. For security issues please directly contact @drkno directly (see commits for email).
