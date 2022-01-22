@@ -3,7 +3,7 @@ import './LoadingPlaceholder.css';
 
 const LoadingPlaceholder = () => (
     <div className="spinner-border text-warning loading-placeholder" role="status">
-        <span className="sr-only">Loading...</span>
+        <span className="visually-hidden">Loading...</span>
     </div>
 );
 
