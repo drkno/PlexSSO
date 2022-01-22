@@ -1,0 +1,20 @@
+version: '3.4'
+
+# For a fuller example, see
+# https://github.com/drkno/media-scripts/blob/main/docker-compose.yml
+
+services:
+    sso:
+        container_name: sso
+        image: drkno/plexsso:latest
+        restart: unless-stopped
+        environment:
+            - TZ=Australia/Sydney
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - ./config/sso:/config
+        command: -s ${PLEX_SERVER_ID} -c .example.com
+        user: sso:sso
+        stop_grace_period: 120s
+        ports:
+            - 4200:4200

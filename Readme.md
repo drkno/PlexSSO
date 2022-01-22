@@ -26,7 +26,9 @@ and more. Unlike other SSO providers such as [Organizr](https://github.com/cause
 
 1. Install `docker` and `nginx`. It is recommended that `nginx` is installed via a docker container.
 2. Start this service in docker. This can be done with a command like `docker run -p 4200:4200/tcp --name plexsso -ti drkno/plexsso:latest -s 0123456789abcdef0123456789abcdef01234567`. See below for possible arguments and how to find their values.
-3. Configure nginx to serve both `PlexSSO` and the upstream service(s). Every upstream service should have `auth_request` specified in it's configuration pointing to port `4200` of the SSO container. See the `/nginx` directory in this repository for examples.
+3. Configure nginx to serve both `PlexSSO` and the upstream service(s). Every upstream service should have `auth_request` specified in it's configuration pointing to port `4200` of the SSO container. See the `/examples/nginx` directory in this repository for examples.
+
+This service can also be started via [`docker-compose`](./examples/docker-compose.yaml).
 
 ### Configuration File
 
