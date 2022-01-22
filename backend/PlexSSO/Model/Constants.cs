@@ -37,5 +37,8 @@ namespace PlexSSO.Model
         public const string ForwardedProtocolHeader = "X-Forwarded-Protocol";
         public const string ForwardedSslHeader = "X-Forwarded-Ssl";
         public const string UrlSchemeHeader = "X-Url-Scheme";
+
+        public const string SsoResponseUserHeader = "X-PlexSSO-Username";
+        public const string SsoResponseEmailHeader = "X-PlexSSO-Email";
     }
 }

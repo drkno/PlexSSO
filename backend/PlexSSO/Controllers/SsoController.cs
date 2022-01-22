@@ -21,6 +21,12 @@ namespace PlexSSO.Controllers
         {
             var response = _authValidator.ValidateAuthenticationStatus(Identity, ServiceName, ServiceUri);
             Response.StatusCode = response.Status;
+
+            if (Identity.IsAuthenticated)
+            {
+                Response.Headers.Add(Constants.SsoResponseUserHeader, Identity.Username.ToString());
+                Response.Headers.Add(Constants.SsoResponseEmailHeader, Identity.Email.ToString());
+            }
             return response;
         }
     }
