@@ -3,6 +3,8 @@ ui/node_modules
 ui/build
 ui/.vscode
 ui/.eslintcache
+ui/.yarn/*
+ui/.pnp.*
 .vscode
 **/config.json
 **/key-*.xml
