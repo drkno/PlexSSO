@@ -93,7 +93,10 @@ namespace PlexSSO.Service.Auth
 
         private AccessControl[] GetAccessControls(ServiceName serviceName)
         {
-            if (serviceName == null || !_configurationService.Config.AccessControls.TryGetValue(serviceName.Value, out var accessControls))
+            var allAccessControls = _configurationService.Config.AccessControls;
+            if (serviceName == null
+                || (!allAccessControls.TryGetValue(serviceName.Value, out var accessControls)
+                && !allAccessControls.TryGetValue("default", out accessControls)))
             {
                 accessControls = new AccessControl[0];
             }
