@@ -17,6 +17,7 @@ ui/.pnp.*
 *.user
 *.userosscache
 *.sln.docstates
+backend/.idea
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

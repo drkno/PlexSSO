@@ -83,7 +83,7 @@ namespace PlexSSO.Model.Internal
             public AccessTier? MinimumAccessTier { get; set; } = AccessTier.NormalUser;
             public ControlType ControlType { get; set; } = ControlType.Block;
             public Username[] Exempt { get; set; } = new Username[0];
-            public string BlockMessage { get; set; } = "Access Denied";
+            public string BlockMessage { get; set; }
 
             public override string ToString()
             {

@@ -40,5 +40,8 @@ namespace PlexSSO.Model
 
         public const string SsoResponseUserHeader = "X-PlexSSO-Username";
         public const string SsoResponseEmailHeader = "X-PlexSSO-Email";
+
+        public const string DefaultAccessDeniedMessage = "Access Denied";
+        public const string DefaultLoginRequiredMessage = "Login Required";
     }
 }

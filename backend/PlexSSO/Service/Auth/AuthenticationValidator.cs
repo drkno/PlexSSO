@@ -1,6 +1,7 @@
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using PlexSSO.Extensions;
+using PlexSSO.Model;
 using PlexSSO.Model.API;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
@@ -27,9 +28,7 @@ namespace PlexSSO.Service.Auth
             var (controlledByRules, matchingAccessControl) = GetFirstMatchingAccessControl(serviceName, serviceUri, identity);
             if (matchingAccessControl != null)
             {
-                var blockMessage = string.IsNullOrWhiteSpace(matchingAccessControl.BlockMessage)
-                    ? _configurationService.Config.DefaultAccessDeniedMessage
-                    : matchingAccessControl.BlockMessage;
+                var blockMessage = GetAccessBlockMessage(matchingAccessControl);
 
                 return new SsoResponse(
                     true,
@@ -49,12 +48,12 @@ namespace PlexSSO.Service.Auth
                     if (identity.IsAuthenticated)
                     {
                         status = 403;
-                        message = _configurationService.Config.DefaultAccessDeniedMessage;
+                        message = GetAccessBlockMessage(null);
                     }
                     else
                     {
                         status = 401;
-                        message = "Login Required";
+                        message = Constants.DefaultLoginRequiredMessage;
                     }
                 }
 
@@ -75,7 +74,7 @@ namespace PlexSSO.Service.Auth
         {
             var controls = GetAccessControls(serviceName);
             var matching = controls
-                .Where(control => control.Path == null || serviceUri.Value.StartsWith(control.Path))
+                .Where(control => control.Path == null || serviceUri == null || serviceUri.Value.StartsWith(control.Path))
                 .FirstOrDefault(control =>
                 {
                     var block = control.ControlType == ControlType.Allow
@@ -99,6 +98,19 @@ namespace PlexSSO.Service.Auth
                 accessControls = new AccessControl[0];
             }
             return accessControls;
+        }
+
+        private string GetAccessBlockMessage(AccessControl accessControl)
+        {
+            if (!string.IsNullOrWhiteSpace(accessControl?.BlockMessage))
+            {
+                return accessControl.BlockMessage;
+            }
+            if (!string.IsNullOrWhiteSpace(_configurationService.Config.DefaultAccessDeniedMessage))
+            {
+                return _configurationService.Config.DefaultAccessDeniedMessage;
+            }
+            return Constants.DefaultAccessDeniedMessage;
         }
     }
 }
