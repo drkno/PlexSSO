@@ -76,11 +76,17 @@ class PlexLogin extends Component {
     checkRedirect() {
         const result = this.getRedirectParams();
         if (result && this.state.loggedInStatus !== 'blocked') {
-            window.requestIdleCallback(() => {
-                window.location = result.redirectPath;
-            }, {
-                timeout: 1000
-            });
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(() => {
+                    window.location = result.redirectPath;
+                }, {
+                    timeout: 1000
+                });
+            } else {
+                setTimeout(() => {
+                    window.location = result.redirectPath;
+                  }, 1000);
+            }
             return result.redirectPath;
         }
         return null;
