@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 using NUnit.Framework;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
@@ -13,13 +13,13 @@ namespace PlexSSO.Test.Service.Auth;
 
 public class AuthenticationValidatorTest
 {
-    private Mock<ILogger<AuthenticationValidator>> _mockLogger;
+    private ILogger<AuthenticationValidator> _mockLogger;
     private PlexSsoConfig _config;
 
     [SetUp]
     public void Setup()
     {
-        _mockLogger = new Mock<ILogger<AuthenticationValidator>>();
+        _mockLogger = Substitute.For<ILogger<AuthenticationValidator>>();
         
         _config = new PlexSsoConfig()
         {
@@ -96,6 +96,6 @@ public class AuthenticationValidatorTest
 
     private AuthenticationValidator CreateValidator()
     {
-        return new AuthenticationValidator(new TestConfigurationService(_config), _mockLogger.Object);
+        return new AuthenticationValidator(new TestConfigurationService(_config), _mockLogger);
     }
 }
