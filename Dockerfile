@@ -10,7 +10,7 @@ WORKDIR /backend
 RUN dotnet restore && \
     dotnet publish PlexSSO.sln -c Release -o build /p:CopyOutputSymbolsToPublishDirectory=false && \
     rm build/ui/index.html
-COPY --from=react-builder /ui/build /backend/build/ui
+COPY --from=react-builder /ui/dist /backend/build/ui
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
