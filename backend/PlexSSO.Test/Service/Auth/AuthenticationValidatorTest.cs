@@ -20,7 +20,7 @@ public class AuthenticationValidatorTest
     public void Setup()
     {
         _mockLogger = Substitute.For<ILogger<AuthenticationValidator>>();
-        
+
         _config = new PlexSsoConfig()
         {
             ConfigFile = "/config/",
@@ -53,19 +53,19 @@ public class AuthenticationValidatorTest
         var validator = CreateValidator();
         var identity = new Identity(new List<Claim>());
         var serviceName = new ServiceName(_config.AccessControls.Keys.First());
-        
+
         ServiceUri serviceUri = null;
-        
+
         var result = validator.ValidateAuthenticationStatus(identity, serviceName, serviceUri);
-        
-        Assert.True(result.AccessBlocked);
-        Assert.False(result.LoggedIn);
-        Assert.True(result.Success);
-        Assert.AreEqual(403, result.Status);
-        Assert.AreEqual(AccessTier.NoAccess, result.Tier);
-        Assert.AreEqual(_config.DefaultAccessDeniedMessage, result.Message);
+
+        Assert.That(result.AccessBlocked, Is.True);
+        Assert.That(result.LoggedIn, Is.False);
+        Assert.That(result.Success, Is.True);
+        Assert.That(403, Is.EqualTo(result.Status));
+        Assert.That(AccessTier.NoAccess, Is.EqualTo(result.Tier));
+        Assert.That(_config.DefaultAccessDeniedMessage, Is.EqualTo(result.Message));
     }
-    
+
     [Test]
     public void Validate_WithNoAccess_ReturnsDefaultAccessDeniedMessage()
     {
@@ -73,12 +73,12 @@ public class AuthenticationValidatorTest
         var identity = new Identity(new List<Claim>());
         var serviceName = new ServiceName(_config.AccessControls.Keys.First());
         var serviceUri = new ServiceUri("/");
-        
+
         var result = validator.ValidateAuthenticationStatus(identity, serviceName, serviceUri);
-        
-        Assert.AreEqual(_config.DefaultAccessDeniedMessage, result.Message);
+
+        Assert.That(_config.DefaultAccessDeniedMessage, Is.EqualTo(result.Message));
     }
-    
+
     [Test]
     public void Validate_WithNoAccess_ReturnsCustomisedAccessDeniedMessage()
     {
@@ -88,10 +88,10 @@ public class AuthenticationValidatorTest
         var serviceUri = new ServiceUri("/");
 
         _config.AccessControls[serviceName.Value].First().BlockMessage = "Test Access Denied Message";
-        
+
         var result = validator.ValidateAuthenticationStatus(identity, serviceName, serviceUri);
-        
-        Assert.AreEqual(_config.AccessControls.Values.First().First().BlockMessage, result.Message);
+
+        Assert.That(_config.AccessControls.Values.First().First().BlockMessage, Is.EqualTo(result.Message));
     }
 
     private AuthenticationValidator CreateValidator()
