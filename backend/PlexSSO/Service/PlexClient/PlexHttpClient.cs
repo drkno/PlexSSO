@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
 
@@ -12,10 +14,13 @@ namespace PlexSSO.Service.PlexClient
     public class PlexHttpClient : IPlexClient
     {
         private readonly HttpClient _httpClient;
+        private readonly ILogger<PlexHttpClient> _logger;
         private readonly Config.IConfigurationService<PlexSsoConfig> _configurationService;
 
-        public PlexHttpClient(IHttpClientFactory clientFactory, Config.IConfigurationService<PlexSsoConfig> configurationService)
+        public PlexHttpClient(ILogger<PlexHttpClient> logger, IHttpClientFactory clientFactory,
+            Config.IConfigurationService<PlexSsoConfig> configurationService)
         {
+            _logger = logger;
             _configurationService = configurationService;
             _httpClient = clientFactory.CreateClient();
         }
@@ -30,6 +35,7 @@ namespace PlexSSO.Service.PlexClient
                 var id = xmlDoc?.Attribute("ProcessedMachineIdentifier")?.Value;
                 config.ServerIdentifier = id == null ? null : new ServerIdentifier(id);
             }
+
             return config.ServerIdentifier;
         }
 
@@ -44,8 +50,9 @@ namespace PlexSSO.Service.PlexClient
                     .FirstOrDefault();
                 return accessLevel == default ? AccessTier.NoAccess : accessLevel;
             }
-            catch
+            catch (Exception e)
             {
+                _logger.LogError(e, "Retrieving access tier failed");
                 return AccessTier.Failure;
             }
         }
@@ -89,10 +96,13 @@ namespace PlexSSO.Service.PlexClient
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadAsStringAsync();
+            var value = await response.Content.ReadAsStringAsync();
+            _logger.LogTrace("Request: {request}\n\nResponse: {value}", request, value);
+            return value;
         }
 
-        private IEnumerable<(ServerIdentifier, AccessTier)> GetServerDetails(IEnumerable<(string, string, string)> servers)
+        private IEnumerable<(ServerIdentifier, AccessTier)> GetServerDetails(
+            IEnumerable<(string, string, string)> servers)
         {
             return servers.Select(x =>
             {
@@ -105,6 +115,7 @@ namespace PlexSSO.Service.PlexClient
                 {
                     accessLevel = AccessTier.HomeUser;
                 }
+
                 return (
                     new ServerIdentifier(x.Item1),
                     accessLevel
@@ -113,4 +124,3 @@ namespace PlexSSO.Service.PlexClient
         }
     }
 }
-
