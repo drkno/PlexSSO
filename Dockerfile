@@ -1,8 +1,8 @@
 FROM node:current-alpine as react-builder
 COPY ./ui /ui
 WORKDIR /ui
-RUN yarn && \
-    yarn build
+RUN corepack yarn && \
+    corepack yarn build
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 as aspnet-builder
 COPY ./backend /backend
