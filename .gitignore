@@ -244,3 +244,6 @@ backend/.paket/paket.exe
 
 # FAKE - F# Make
 backend/.fake/
+
+# CLI Test runs
+**/TestResults/*
