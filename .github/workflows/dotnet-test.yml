@@ -1,0 +1,35 @@
+name: dotnet test
+on:
+    pull_request:
+        branches:
+            - main
+        paths:
+            - 'backend/**'
+    push:
+        branches:
+            - main
+        paths:
+            - 'backend/**'
+jobs:
+    dotnet_test:
+        name: dotnet test
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v4
+              with:
+                  submodules: true
+            - name: Build and test
+              run: |
+                cd backend
+                dotnet restore
+                dotnet build
+                dotnet test --configuration Debug --logger trx --collect:"XPlat Code Coverage"
+            - name: Test Report
+              uses: dorny/test-reporter@v1.9.1
+              if: success() || failure()
+              with:
+                name: Unit Test Report
+                path: '**/*.trx'
+                reporter: dotnet-trx
+
