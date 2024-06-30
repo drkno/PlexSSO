@@ -8,7 +8,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 as aspnet-builder
 COPY ./backend /backend
 WORKDIR /backend
 RUN dotnet restore && \
-    dotnet publish PlexSSO.sln -c Release -o build /p:CopyOutputSymbolsToPublishDirectory=false && \
+    dotnet publish PlexSSO.sln -c Release -o build /p:CopyOutputSymbolsToPublishDirectory=false /p:DebugType=None /p:DebugSymbols=false && \
     rm build/ui/index.html
 COPY --from=react-builder /ui/build /backend/build/ui
 
