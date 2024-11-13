@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using PlexSSO.Model;
 using PlexSSO.Model.API;
 using PlexSSO.Service.Auth;
@@ -9,10 +11,14 @@ namespace PlexSSO.Controllers
     [Route(Constants.ControllerPath)]
     public class SsoController : CommonAuthController
     {
+        private readonly ILogger<SsoController> _logger;
         private readonly IAuthValidator _authValidator;
 
-        public SsoController(IAuthValidator authValidator)
+        public SsoController(
+            ILogger<SsoController> logger,
+            IAuthValidator authValidator)
         {
+            _logger = logger;
             _authValidator = authValidator;
         }
 
@@ -24,8 +30,13 @@ namespace PlexSSO.Controllers
 
             if (Identity.IsAuthenticated)
             {
-                Response.Headers.Add(Constants.SsoResponseUserHeader, Identity.Username.ToString());
-                Response.Headers.Add(Constants.SsoResponseEmailHeader, Identity.Email.ToString());
+                var success = Response.Headers.TryAdd(Constants.SsoResponseUserHeader, Identity.Username.ToString());
+                success = success || Response.Headers.TryAdd(Constants.SsoResponseEmailHeader, Identity.Email.ToString());
+
+                if (!success)
+                {
+                    _logger.LogWarning("Adding response headers failed:\n{headers}", Response.Headers);
+                }
             }
             return response;
         }
