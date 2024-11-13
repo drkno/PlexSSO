@@ -83,7 +83,7 @@ namespace PlexSSO.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError("Failed to log user in", e);
+                _logger.LogError("Failed to log user in: {e}", e);
                 Identity.AccessTier = AccessTier.NoAccess;
                 Identity.IsAuthenticated = false;
                 return GetErrorResponse();

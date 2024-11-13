@@ -30,7 +30,7 @@ namespace PlexSSO.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError("Failed to log a user out", e);
+                _logger.LogError("Failed to log a user out: {e}", e);
                 Response.StatusCode = 400;
                 return new BasicResponse(false);
             }
