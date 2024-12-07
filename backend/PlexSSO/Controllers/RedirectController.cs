@@ -60,7 +60,7 @@ namespace PlexSSO.Controllers
             var location = string.IsNullOrWhiteSpace(authenticationToken.Location)
                 ? path
                 : authenticationToken.Location;
-            Response.Headers.Add("Location", protoString + host + location);
+            var redirectSuccess = Response.Headers.TryAdd("Location", protoString + host + location);
             Response.Cookies.AppendWithoutEncoding(authenticationToken.CookieName, authenticationToken.CookieValue, new CookieOptions
             {
                 HttpOnly = false,
@@ -70,7 +70,7 @@ namespace PlexSSO.Controllers
                 Path = "/",
                 Secure = false
             });
-            _logger.LogInformation($"Performing service specific redirect to '{location}' with status {authenticationToken.StatusCode}");
+            _logger.LogInformation($"Performing service specific redirect to '{location}' with status {authenticationToken.StatusCode}. Added Location header = {redirectSuccess}");
             return authenticationToken.StatusCode;
         }
 
@@ -79,8 +79,8 @@ namespace PlexSSO.Controllers
             var (protocol, host, path) = redirectComponents;
             var protoString = protocol == Protocol.Https ? "https://" : "http://";
             var location = protoString + host + path;
-            Response.Headers.Add("Location", location);
-            _logger.LogInformation($"Performing normal redirect to '{location}' with status 302");
+            var redirectSuccess = Response.Headers.TryAdd("Location", location);
+            _logger.LogInformation($"Attempting redirect to '{location}' with status 302. Added Location header = {redirectSuccess}");
             return 302;
         }
 

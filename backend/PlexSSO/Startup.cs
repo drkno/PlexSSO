@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Antiforgery;
@@ -85,7 +86,7 @@ namespace PlexSSO
             app.Use((context, next) => {
                 var tokens = antiForgery.GetAndStoreTokens(context);
                 context.Response.Cookies.Append(Constants.CsrfHeaderName, tokens.RequestToken, new CookieOptions { HttpOnly = false });
-                context.Response.Headers.Add(Constants.PoweredByHeaderName, Constants.PoweredByHeaderValue);
+                context.Response.Headers.TryAdd(Constants.PoweredByHeaderName, Constants.PoweredByHeaderValue);
                 return next.Invoke();
             });
             app.UseStaticFiles();

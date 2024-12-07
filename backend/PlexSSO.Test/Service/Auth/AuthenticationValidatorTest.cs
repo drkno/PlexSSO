@@ -13,8 +13,8 @@ namespace PlexSSO.Test.Service.Auth;
 
 public class AuthenticationValidatorTest
 {
-    private ILogger<AuthenticationValidator> _mockLogger;
-    private PlexSsoConfig _config;
+    private ILogger<AuthenticationValidator>? _mockLogger;
+    private PlexSsoConfig? _config;
 
     [SetUp]
     public void Setup()
@@ -52,9 +52,9 @@ public class AuthenticationValidatorTest
     {
         var validator = CreateValidator();
         var identity = new Identity(new List<Claim>());
-        var serviceName = new ServiceName(_config.AccessControls.Keys.First());
+        var serviceName = new ServiceName(_config!.AccessControls.Keys.First());
 
-        ServiceUri serviceUri = null;
+        ServiceUri? serviceUri = null;
 
         var result = validator.ValidateAuthenticationStatus(identity, serviceName, serviceUri);
 
@@ -71,7 +71,7 @@ public class AuthenticationValidatorTest
     {
         var validator = CreateValidator();
         var identity = new Identity(new List<Claim>());
-        var serviceName = new ServiceName(_config.AccessControls.Keys.First());
+        var serviceName = new ServiceName(_config!.AccessControls.Keys.First());
         var serviceUri = new ServiceUri("/");
 
         var result = validator.ValidateAuthenticationStatus(identity, serviceName, serviceUri);
@@ -84,7 +84,7 @@ public class AuthenticationValidatorTest
     {
         var validator = CreateValidator();
         var identity = new Identity(new List<Claim>());
-        var serviceName = new ServiceName(_config.AccessControls.Keys.First());
+        var serviceName = new ServiceName(_config!.AccessControls.Keys.First());
         var serviceUri = new ServiceUri("/");
 
         _config.AccessControls[serviceName.Value].First().BlockMessage = "Test Access Denied Message";
@@ -96,6 +96,6 @@ public class AuthenticationValidatorTest
 
     private AuthenticationValidator CreateValidator()
     {
-        return new AuthenticationValidator(new TestConfigurationService(_config), _mockLogger);
+        return new AuthenticationValidator(new TestConfigurationService(_config!), _mockLogger);
     }
 }
