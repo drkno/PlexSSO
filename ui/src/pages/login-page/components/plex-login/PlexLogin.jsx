@@ -62,7 +62,7 @@ class PlexLogin extends Component {
             const location = window.location.pathname;
             const pathSplit = location.split('/');
             const service = pathSplit[1];
-            const path = pathSplit.length < 2 ? '/' : location.substr(service.length + 1) + window.location.search;
+            const path = pathSplit.length < 2 ? '/' : location.substring(service.length + 1) + window.location.search + window.location.hash;
 
             return {
                 service,
