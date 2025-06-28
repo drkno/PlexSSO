@@ -4,13 +4,13 @@
     "private": true,
     "type": "module",
     "dependencies": {
-        "bootstrap": "^5.3.3",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0"
+        "bootstrap": "^5.3.7",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0"
     },
     "devDependencies": {
-        "@vitejs/plugin-react": "^4.3.4",
-        "vite": "^6.2.7"
+        "@vitejs/plugin-react": "^4.6.0",
+        "vite": "^7.0.0"
     },
     "scripts": {
         "start": "vite",
@@ -24,5 +24,5 @@
         "not ie <= 11",
         "not op_mini all"
     ],
-    "packageManager": "yarn@4.5.3"
+    "packageManager": "yarn@4.9.2"
 }
