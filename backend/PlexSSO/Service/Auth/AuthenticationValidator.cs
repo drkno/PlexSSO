@@ -9,77 +9,85 @@ using static PlexSSO.Model.Internal.PlexSsoConfig;
 
 namespace PlexSSO.Service.Auth
 {
-    public class AuthenticationValidator : IAuthValidator
+    public class AuthenticationValidator(
+        Config.IConfigurationService<PlexSsoConfig> configurationService,
+        ILogger<AuthenticationValidator> logger)
+        : IAuthValidator
     {
-        private readonly Config.IConfigurationService<PlexSsoConfig> _configurationService;
-
-        public AuthenticationValidator(Config.IConfigurationService<PlexSsoConfig> configurationService,
-                                       ILogger<AuthenticationValidator> logger)
-        {
-            _configurationService = configurationService;
-        }
-
         public SsoResponse ValidateAuthenticationStatus(
             Identity identity,
             ServiceName serviceName,
             ServiceUri serviceUri
         )
         {
-            var (controlledByRules, matchingAccessControl) = GetFirstMatchingAccessControl(serviceName, serviceUri, identity);
-            if (matchingAccessControl != null)
+            if (!identity.IsAuthenticated || identity.AccessTier == AccessTier.Failure)
             {
-                var blockMessage = GetAccessBlockMessage(matchingAccessControl);
+                return new SsoResponse(
+                    success: true,
+                    loggedIn: false,
+                    blocked: true,
+                    AccessTier.NoAccess,
+                    status: 401,
+                    Constants.DefaultLoginRequiredMessage
+                );
+            }
 
+            if (!string.IsNullOrWhiteSpace(serviceUri.Value)
+                && TryGetFirstMatchingAccessControl(serviceName, serviceUri, identity,
+                    out var matchingAccessControl))
+            {
+                logger.LogWarning("Blocked access to {serviceName} for user {user} by rule with path {path}",
+                    serviceName, identity.Username, matchingAccessControl.Path);
+
+                var blockMessage = GetAccessBlockedMessage(matchingAccessControl);
                 return new SsoResponse(
                     true,
                     identity.IsAuthenticated,
                     true,
                     AccessTier.NoAccess,
-                    403,
+                    status: 403,
                     blockMessage
                 );
             }
-            else
-            {
-                var message = "";
-                var status = 200;
-                if (!controlledByRules && identity.AccessTier == AccessTier.NoAccess)
-                {
-                    if (identity.IsAuthenticated)
-                    {
-                        status = 403;
-                        message = GetAccessBlockMessage(null);
-                    }
-                    else
-                    {
-                        status = 401;
-                        message = Constants.DefaultLoginRequiredMessage;
-                    }
-                }
 
+            if (identity.AccessTier == AccessTier.NoAccess)
+            {
+                logger.LogWarning("Blocked access for user {user}, they have no server access", identity.Username);
+                
+                var blockMessage = GetAccessBlockedMessage();
                 return new SsoResponse(
-                    true,
-                    identity.IsAuthenticated,
-                    status != 200,
-                    identity.AccessTier,
-                    status,
-                    message
+                    success: true,
+                    loggedIn: identity.IsAuthenticated,
+                    blocked: true,
+                    AccessTier.NoAccess,
+                    status: 403,
+                    blockMessage
                 );
             }
+
+            return new SsoResponse(
+                success: true,
+                loggedIn: identity.IsAuthenticated,
+                blocked: false,
+                identity.AccessTier,
+                status: 200,
+                Constants.DefaultAuthorizedMessage
+            );
         }
 
-        private (bool, AccessControl) GetFirstMatchingAccessControl(ServiceName serviceName,
-                                                            ServiceUri serviceUri,
-                                                            Identity identity)
+        private bool TryGetFirstMatchingAccessControl(ServiceName serviceName,
+            ServiceUri serviceUri,
+            Identity identity,
+            out AccessControl accessControl)
         {
             var controls = GetAccessControls(serviceName);
             var matching = controls
-                .Where(control => control.Path == null || serviceUri == null || serviceUri.Value.StartsWith(control.Path))
+                .Where(control => control.Path == null || (serviceUri?.Value.StartsWith(control.Path) ?? false))
                 .FirstOrDefault(control =>
                 {
                     var block = control.ControlType == ControlType.Allow
-                        ? identity.AccessTier.IsHigherTierThan(control.MinimumAccessTier ?? AccessTier.Failure)
-                        : identity.AccessTier.IsLowerTierThan(control.MinimumAccessTier ?? AccessTier.NoAccess);
+                        ? identity.AccessTier.HasMoreAccessThan(control.MinimumAccessTier)
+                        : identity.AccessTier.HasLessAccessThan(control.MinimumAccessTier);
                     if (control.Exempt.Contains(identity.Username))
                     {
                         block = !block;
@@ -87,29 +95,33 @@ namespace PlexSSO.Service.Auth
 
                     return block;
                 });
-            return (controls.Length > 0, matching);
+            accessControl = matching;
+            return matching != null;
         }
 
         private AccessControl[] GetAccessControls(ServiceName serviceName)
         {
-            var allAccessControls = _configurationService.Config.AccessControls;
+            var allAccessControls = configurationService.Config.AccessControls;
             if (serviceName == null || !allAccessControls.TryGetValue(serviceName.Value, out var accessControls))
             {
-                accessControls = new AccessControl[0];
+                accessControls = [];
             }
+
             return accessControls;
         }
 
-        private string GetAccessBlockMessage(AccessControl accessControl)
+        private string GetAccessBlockedMessage(AccessControl accessControl = null)
         {
             if (!string.IsNullOrWhiteSpace(accessControl?.BlockMessage))
             {
                 return accessControl.BlockMessage;
             }
-            if (!string.IsNullOrWhiteSpace(_configurationService.Config.DefaultAccessDeniedMessage))
+
+            if (!string.IsNullOrWhiteSpace(configurationService.Config.DefaultAccessDeniedMessage))
             {
-                return _configurationService.Config.DefaultAccessDeniedMessage;
+                return configurationService.Config.DefaultAccessDeniedMessage;
             }
+
             return Constants.DefaultAccessDeniedMessage;
         }
     }
