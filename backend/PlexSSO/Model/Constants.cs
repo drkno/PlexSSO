@@ -43,5 +43,6 @@ namespace PlexSSO.Model
 
         public const string DefaultAccessDeniedMessage = "Access Denied";
         public const string DefaultLoginRequiredMessage = "Login Required";
+        public const string DefaultAuthorizedMessage = "Authorized";
     }
 }
