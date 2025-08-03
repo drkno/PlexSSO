@@ -32,7 +32,7 @@ namespace PlexSSO.Service.Auth
                 );
             }
 
-            if (!string.IsNullOrWhiteSpace(serviceUri.Value)
+            if (!string.IsNullOrWhiteSpace(serviceUri?.Value)
                 && TryGetFirstMatchingAccessControl(serviceName, serviceUri, identity,
                     out var matchingAccessControl))
             {
