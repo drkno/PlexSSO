@@ -30,6 +30,8 @@ and more. Unlike other SSO providers such as [Organizr](https://github.com/cause
 
 This service can also be started via [`docker-compose`](./examples/docker-compose.yaml).
 
+See the examples/kubernetes folder for details on setting this up under kubernetes.
+
 ## Configuration File
 
 By default PlexSSO is configurable using a configuration stored in the `config.json` file. If a config is not found, a default one will be generated on startup. The location of this file can be overridden (see CLI Arguments).
