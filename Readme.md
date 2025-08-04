@@ -2,7 +2,7 @@
 
 ![Docker Publish Status](https://github.com/drkno/PlexSSOv2/workflows/Publish%20Docker%20image/badge.svg)
 
-An nginx `auth_request` Single Sign On service, using [Plex](https://plex.tv) as the upstream authorisation provider.
+An nginx `auth_request` Single Sign On service, using [Plex](https://plex.tv) as the upstream authorisation provider. This also works with [ingress-nginx](https://github.com/kubernetes/ingress-nginx) on kubernetes.
 
 This is designed to sit in front of various services and replace their authentication with a single unified login. It is compatible with services such as:
 
@@ -22,7 +22,7 @@ This is designed to sit in front of various services and replace their authentic
 
 and more. Unlike other SSO providers such as [Organizr](https://github.com/causefx/Organizr) it is stand-alone so isn't tied to any usage pattern or front-end.
 
-### Installation
+## Installation
 
 1. Install `docker` and `nginx`. It is recommended that `nginx` is installed via a docker container.
 2. Start this service in docker. This can be done with a command like `docker run -p 4200:4200/tcp --name plexsso -ti drkno/plexsso:latest -s 0123456789abcdef0123456789abcdef01234567`. See below for possible arguments and how to find their values.
@@ -30,11 +30,14 @@ and more. Unlike other SSO providers such as [Organizr](https://github.com/cause
 
 This service can also be started via [`docker-compose`](./examples/docker-compose.yaml).
 
-### Configuration File
+See the examples/kubernetes folder for details on setting this up under kubernetes.
+
+## Configuration File
 
 By default PlexSSO is configurable using a configuration stored in the `config.json` file. If a config is not found, a default one will be generated on startup. The location of this file can be overridden (see CLI Arguments).
 
-`config.json` will look something like the following:  
+`config.json` will look something like the following:
+
 ```js
 {
   "serverIdentifier": "0123456789abcdef0123456789abcdef01234567",
@@ -61,13 +64,14 @@ By default PlexSSO is configurable using a configuration stored in the `config.j
 
 | Property              | Description |
 |-----------------------|-------------|
-| `serverIdentifier`    | Your plex server identifier. This can often be found somewhere in `/var/lib/plexmediaserver/Preferences.xml`. This argument is mandatory, as without it we do not know which server to authenticate against. |
+| `serverIdentifier`    | Your plex server identifier. See the "Retrieving Plex Server Identifier" section below. |
 | `plexPreferencesFile` | The path to your Plex `Preferences.xml` file, used to extract your Plex server identifier. This argument is relative to docker, so a volume must be configured in order to use this option. Additionally, it is mutually exclusive to `serverIdentifier` as it serves the same purpose. |
 | `cookieDomain` | The domain to use for the authentication cookie. If all of your services are on subdomains `*.example.com` and your SSO is at `login.example.com` then this should be set to `.example.com`. See [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies) for more information. |
 | `accessControls` | A section for defining rules about which users are allowed to access which services. The default rule is that all users with access to your Plex server have access to all services. This section takes the form of a map/dictionary, with the service names being the key (as passed from `nginx`/other reverse proxy via the `X-PlexSSO-For` header) to list/array of rules. |
 | `defaultAccessDeniedMessage` | The default message to show when an request is blocked but not by a rule. |
 
-#### Access Control Service Rules
+### Access Control Service Rules
+
 | Property              | Description |
 |-----------------------|-------------|
 | `path` | URL path within the affected service that this affects. Requires `X-PlexSSO-Original-URI` to be passed by `nginx`/your reverse proxy. |
@@ -78,7 +82,15 @@ By default PlexSSO is configurable using a configuration stored in the `config.j
 | `ombiPublicHostname` | The public facing hostname of Ombi (if present), must be reachable from PlexSSO. Will authenticate the user with Ombi using Ombi's native authentication allowing them to use their own account with the SSO. |
 | `tautulliPublicHostname` | The public facing hostname of Tautulli/PlexPy (if present), must be reachable from PlexSSO. Will authenticate the user with Tautulli using Tautulli's native authentication allowing them to use their own account with the SSO. |
 
-### CLI Arguments
+## Retrieving Plex Server Identifier
+
+There are multiple ways to retrieve your plex media server identifier.
+
+1. Plex configuration file. See [Where is the Plex Media Server data directory located?](https://support.plex.tv/articles/202915258-where-is-the-plex-media-server-data-directory-located/) to locate the directory holding Preferences.xml on your system. Preferences.xml should be in the root of that directory. You want to use the **ProcessedMachineIdentifier** attribute value in Preferences.xml. "MachineIdentifier" will not work.
+
+2. Tautulli. If you have Tautulli installed, you can retrieve the serverIdentifier value on the settings page. In Tautilli, go to Settings -> Plex Media Server and look at the **Plex Server Identifier**.
+
+## CLI Arguments
 
 _All CLI arguments have corresponding entries in the configuration file._
 
@@ -89,6 +101,6 @@ _All CLI arguments have corresponding entries in the configuration file._
 | `-p`/`--preferences` | See `plexPreferencesFile` in Configuration File section. |
 | `-c`/`--cookie-domain` | See `cookieDomain` in Configuration File section.  |
 
-### Contributing
+## Contributing
 
 Contributions welcome via pull requests and issues. For security issues please directly contact @drkno directly (see commits for email).
