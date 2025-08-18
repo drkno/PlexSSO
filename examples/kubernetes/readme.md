@@ -6,7 +6,7 @@ This assumes you have a kubernetes environment set up, and [ingress-nginx](https
 
 Install largely matches what you do for docker, but just in kubernetes style. You want a persistent volume to hold the configuration directory. You could make the configuration file an Opaque kubernetes Secret, however the PlexSSO program generates a long-lived token for its use, and if you don't have a persistent config directory, it will have to generate a new one on every restart of the pod, which might make Plex sad.
 
-The below examples are genericised versions of [ejstacey's plexsso config](https://gitea.joyrex.net/ejstacey/kube-configs/src/branch/main/infra/plexsso).
+The below examples are genericised versions of [ejstacey's plexsso config](https://repo.joyrex.net/ejstacey/kube-configs/src/branch/main/infra/plexsso).
 
 Start with the PVC. You will likely have to adapt this for your storage backend config. You don't need much space.
 
