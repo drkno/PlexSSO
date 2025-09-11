@@ -170,10 +170,16 @@ class PlexOAuth extends EventEmitter {
                 'X-PlexSSO-Original-URI': location || ''
             }
         });
-        const json = await response.json();
-        if (json.loggedIn) {
-            this._setLoggedInStatus(json);
-            return this._loggedInStatus;
+
+        try {
+            const json = await response.json();
+            if (json.loggedIn) {
+                this._setLoggedInStatus(json);
+                return this._loggedInStatus;
+            }
+        } catch (e) {
+            console.error(e);
+            // fall-through, assume not logged in
         }
 
         // remember me
