@@ -18,7 +18,7 @@ class PlexLogin extends Component {
         };
         const loggedInState = await PlexOAuth.isLoggedIn(pathParams.service, pathParams.path);
         this.setState({
-            loggedInStatus: loggedInState.accessBlocked ? 'blocked' : loggedInState.loggedIn,
+            loggedInStatus: this.getLoggedInStatus(loggedInState),
             failedLogin: loggedInState.success === false,
             tier: loggedInState.tier,
             message: loggedInState.message
@@ -36,11 +36,21 @@ class PlexLogin extends Component {
         };
         const loginResult = await PlexOAuth.login(rememberMe, pathParams.service, pathParams.path);
         this.setState({
-            loggedInStatus: loginResult.accessBlocked ? 'blocked' : loginResult.loggedIn,
+            loggedInStatus: this.getLoggedInStatus(loginResult),
             failedLogin: loginResult.loggedIn === false || loginResult.success === false,
             tier: loginResult.tier,
             message: loginResult.message
         });
+    }
+
+    getLoggedInStatus(loggedInState) {
+        if (loggedInState.accessBlocked) {
+            if (loggedInState.status === 400) {
+                return 'error';
+            }
+            return 'blocked';
+        }
+        return loggedInState.loggedIn;
     }
 
     async logout() {
@@ -96,6 +106,11 @@ class PlexLogin extends Component {
         switch (this.state.loggedInStatus) {
             case 'blocked': return (<AccessDeniedPage message={this.state.message} />);
             case 'transition': return (<LoadingPlaceholder />);
+            case 'error':
+                return (<>
+                    <AccessDeniedPage message='An error occurred with your Plex account.<br/>Try logging out then in again.' />
+                    <LogoutForm logout={this.logout.bind(this)} tier={void(0)} redirectTo={void(0)} />
+                </>);
             case true: return (<LogoutForm logout={this.logout.bind(this)} tier={this.state.tier} redirectTo={this.checkRedirect()} />);
             case false: return (<LoginForm login={this.login.bind(this)} failure={this.state.failedLogin} />);
             default: return (<LoadingPlaceholder />);
