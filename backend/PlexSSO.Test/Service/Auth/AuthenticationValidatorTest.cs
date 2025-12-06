@@ -78,7 +78,7 @@ public class AuthenticationValidatorTest
         var serviceName = new ServiceName(_config!.AccessControls.Keys.First());
         var serviceUri = new ServiceUri("/");
 
-        _config.AccessControls[serviceName.Value].First().BlockMessage = "Test Access Denied Message";
+        _config!.AccessControls[serviceName.Value].First().BlockMessage = "Test Access Denied Message";
 
         var result = validator.ValidateAuthenticationStatus(identity, serviceName, serviceUri);
 
@@ -88,7 +88,7 @@ public class AuthenticationValidatorTest
             blocked: true,
             accessTier: AccessTier.NoAccess,
             status: 403,
-            message: _config.AccessControls.Values.First().First().BlockMessage
+            message: _config!.AccessControls.Values.First().First().BlockMessage
         ));
     }
     
@@ -101,8 +101,8 @@ public class AuthenticationValidatorTest
         var serviceName = new ServiceName(_config!.AccessControls.Keys.First());
         var serviceUri = new ServiceUri("/");
 
-        _config.AccessControls[serviceName.Value].First().BlockMessage = "Test Access Denied Message";
-        _config.AccessControls[serviceName.Value].First().Exempt = [username];
+        _config!.AccessControls[serviceName.Value].First().BlockMessage = "Test Access Denied Message";
+        _config!.AccessControls[serviceName.Value].First().Exempt = [username];
 
         var result = validator.ValidateAuthenticationStatus(identity, serviceName, serviceUri);
 
@@ -132,7 +132,7 @@ public class AuthenticationValidatorTest
             blocked: true,
             accessTier: AccessTier.NoAccess,
             status: 403,
-            message: _config.DefaultAccessDeniedMessage
+            message: _config!.DefaultAccessDeniedMessage
         ));
     }
 
@@ -191,13 +191,13 @@ public class AuthenticationValidatorTest
         AccessTier[] allowedAccessTiers)
     {
         // NoAccess is permanently blocked
-        AccessTier[] allBlockedAccessTiers = [.. blockedAccessTiers, AccessTier.NoAccess];
+        var allBlockedAccessTiers = blockedAccessTiers.Concat([AccessTier.NoAccess]).ToArray();
         
         var validator = CreateValidator();
         var serviceName = new ServiceName("status");
         var serviceUri = new ServiceUri("/");
 
-        _config.AccessControls = new Dictionary<string, PlexSsoConfig.AccessControl[]>()
+        _config!.AccessControls = new Dictionary<string, PlexSsoConfig.AccessControl[]>()
         {
             {
                 "status", new[]
@@ -223,7 +223,7 @@ public class AuthenticationValidatorTest
                 blocked: true,
                 accessTier: AccessTier.NoAccess,
                 status: 403,
-                message: _config.AccessControls.Values.First().First().BlockMessage
+                message: _config!.AccessControls.Values.First().First().BlockMessage
             ));
         }
 
@@ -253,13 +253,13 @@ public class AuthenticationValidatorTest
         AccessTier[] blockedAccessTiers)
     {
         // NoAccess are permanently blocked
-        AccessTier[] allBlockedAccessTiers = [.. blockedAccessTiers, AccessTier.NoAccess];
+        var allBlockedAccessTiers = blockedAccessTiers.Concat([AccessTier.NoAccess]).ToArray();
 
         var validator = CreateValidator();
         var serviceName = new ServiceName("status");
         var serviceUri = new ServiceUri("/");
 
-        _config.AccessControls = new Dictionary<string, PlexSsoConfig.AccessControl[]>()
+        _config!.AccessControls = new Dictionary<string, PlexSsoConfig.AccessControl[]>()
         {
             {
                 "status", new[]
@@ -286,8 +286,8 @@ public class AuthenticationValidatorTest
                 accessTier: AccessTier.NoAccess,
                 status: 403,
                 message: blockedAccessTier == AccessTier.NoAccess 
-                    ? _config.DefaultAccessDeniedMessage
-                    : _config.AccessControls.Values.First().First().BlockMessage
+                    ? _config!.DefaultAccessDeniedMessage
+                    : _config!.AccessControls.Values.First().First().BlockMessage
             ));
         }
 
