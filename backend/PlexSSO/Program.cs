@@ -1,12 +1,6 @@
 using System;
 using System.Linq;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using PlexSSO.Extensions;
 using PlexSSO.Model;
-using PlexSSO.Model.Internal;
 using PlexSSO.Service.HealthCheck;
 using PlexSSO;
 
@@ -19,18 +13,5 @@ if (argsList.Contains("--healthcheck"))
     return;
 }
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Allow CLI args to map to our annotated config
-builder.Configuration.AddCommandLine(argsList, typeof(PlexSsoConfig).GetAnnotatedCliArgumentsAsDictionary());
-
-// Configure web host to use Startup for separation of concerns
-builder.Host.ConfigureWebHostDefaults(webBuilder =>
-{
-    webBuilder.ConfigureKestrel((context, options) => options.AddServerHeader = false);
-    webBuilder.UseUrls($"http://0.0.0.0:{Constants.PortNumber}/");
-    webBuilder.UseStartup<Startup>();
-});
-
-var host = builder.Build();
-await host.RunAsync();
+var app = ProgramHost.BuildWebApplication(args);
+await app.RunAsync();
