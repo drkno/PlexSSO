@@ -1,7 +1,9 @@
 FROM node:current-alpine as react-builder
 COPY ./ui /ui
 WORKDIR /ui
-RUN corepack yarn && \
+RUN rm /usr/local/bin/yarn* && \
+    npm install -g corepack@latest && \
+    corepack yarn && \
     corepack yarn build
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 as aspnet-builder
