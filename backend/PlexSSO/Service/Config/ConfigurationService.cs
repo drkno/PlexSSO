@@ -51,7 +51,7 @@ public class ConfigurationService : IConfigurationService
         {
             return (T)config;
         }
-        var configFile = Path.Join(_configDirectory, key + Constants.ConfigurationFileExt);
+        var configFile = Path.Join(_configDirectory, key + "." + Constants.ConfigurationFileName);
         var pluginConfig = LoadConfig<T>(configFile, _configuration);
         _pluginConfigs[key] = pluginConfig;
         return pluginConfig;
@@ -60,7 +60,7 @@ public class ConfigurationService : IConfigurationService
     public void SavePluginConfig<T>(string key, T value)
     {
         _pluginConfigs[key] = value;
-        var configFile = Path.Join(_configDirectory, key + Constants.ConfigurationFileExt);
+        var configFile = Path.Join(_configDirectory, key + "." + Constants.ConfigurationFileName);
         SaveConfig(configFile, value);
     }
 

@@ -3,8 +3,7 @@ namespace PlexSSO.Model
     public static class Constants
     {
         public const string ConfigurationDirectoryKey = "config";
-        public const string ConfigurationFileExt = ".json";
-        public const string ConfigurationFileName = "config" + ConfigurationFileExt;
+        public const string ConfigurationFileName = "config.json";
 
         public const string ApplicationName = "PlexSSO";
         public const int PortNumber = 4200;
