@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PlexSSO.Service.Config;
 using Microsoft.IdentityModel.Tokens;
 using PlexSSO.Controllers;
+using PlexSSO.Model.Types;
 using PlexSSO.Oidc.Plugin.Model;
 using PlexSSO.Oidc.Plugin.Service;
 
@@ -115,5 +116,5 @@ public class OidcController(
         };
     }
 
-    private string GetIssuer() => $"{Request.Scheme}://{Request.Host}";
+    private string GetIssuer() => $"{(Protocol == Protocol.Https ? "https" : "http")}://{Request.Host}";
 }
