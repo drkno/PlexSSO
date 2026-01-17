@@ -17,11 +17,11 @@ namespace PlexSSO.Controllers
     [Route("[controller]")]
     public class RedirectController : CommonAuthController
     {
-        private readonly IConfigurationService<PlexSsoConfig> _configurationService;
+        private readonly IConfigurationService _configurationService;
         private readonly IEnumerable<ITokenService> _tokenServices;
         private readonly ILogger<RedirectController> _logger;
 
-        public RedirectController(IConfigurationService<PlexSsoConfig> configurationService,
+        public RedirectController(IConfigurationService configurationService,
                                   IEnumerable<ITokenService> tokenServices,
                                   ILogger<RedirectController> logger)
         {

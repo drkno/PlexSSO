@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PlexSSO.Model.Internal;
 using PlexSSO.Service.Auth;
 using PlexSSO.Service.Config;
 using PlexSSO.Service.PlexClient;
@@ -9,9 +8,9 @@ namespace PlexSSO.Service
 {
     public static class ServiceRegistry
     {
-        public static Config.IConfigurationService<PlexSsoConfig> LoadConfiguration(IConfiguration configuration)
+        public static IConfigurationService LoadConfiguration(IConfiguration configuration)
         {
-            return new ConfigurationService<PlexSsoConfig>(configuration);
+            return new ConfigurationService(configuration);
         }
 
         public static void RegisterServices(IServiceCollection services)

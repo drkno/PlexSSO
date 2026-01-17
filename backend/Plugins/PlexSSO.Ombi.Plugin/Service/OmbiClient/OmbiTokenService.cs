@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using PlexSSO.Extensions;
 using PlexSSO.Model;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
@@ -17,10 +16,10 @@ namespace PlexSSO.Ombi.Plugin.Service.OmbiClient
     public class OmbiTokenService : ITokenService
     {
         private readonly HttpClient _httpClient;
-        private readonly IConfigurationService<PlexSsoConfig> _configurationService;
+        private readonly IConfigurationService _configurationService;
 
         public OmbiTokenService(IHttpClientFactory clientFactory,
-                                IConfigurationService<PlexSsoConfig> configurationService)
+                                IConfigurationService configurationService)
         {
             _httpClient = clientFactory.CreateClient();
             _configurationService = configurationService;
@@ -65,10 +64,9 @@ namespace PlexSSO.Ombi.Plugin.Service.OmbiClient
 
         private string GetHostname()
         {
-            return _configurationService.Config
-                .Plugins
-                .GetOrDefault(OmbiConstants.PluginName)?
-                .GetOrDefault(OmbiConstants.PublicHostname) ?? "";
+            return _configurationService
+                .GetPluginConfig<OmbiConfig>(OmbiConstants.PluginName)
+                .PublicHostname ?? "";
         }
     }
 }

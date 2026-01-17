@@ -247,3 +247,5 @@ backend/.fake/
 
 # CLI Test runs
 **/TestResults/*
+
+**/.DS_Store

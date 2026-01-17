@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,42 +29,22 @@ namespace PlexSSO.Model.Internal
         {
             { "example-service", new[] { new AccessControl { Exempt = new[] { new Username("some-exempt-user")  } } } }
         };
+
+        [Obsolete]
         public IDictionary<string, IDictionary<string, string>> Plugins { get; set; } = new Dictionary<string, IDictionary<string, string>>();
 
-        public string OmbiPublicHostname
+        [Obsolete]
+        public string TryGetPluginConfigValue(string pluginName, string key)
         {
-            set
+            if (!(Plugins?.TryGetValue(pluginName, out var pluginConfig) ?? false))
             {
-                Plugins ??= new Dictionary<string, IDictionary<string, string>>();
-                Plugins["ombi"] = new Dictionary<string, string>()
-                {
-                    { "publicHostname", value }
-                };
+                return null;
             }
-        }
-
-        public string TautulliPublicHostname
-        {
-            set
+            if (!(pluginConfig?.TryGetValue(key, out var value) ?? false))
             {
-                Plugins ??= new Dictionary<string, IDictionary<string, string>>();
-                Plugins["tautulli"] = new Dictionary<string, string>()
-                {
-                    { "publicHostname", value }
-                };
+                return null;
             }
-        }
-
-        public string OverseerrPublicHostname
-        {
-            set
-            {
-                Plugins ??= new Dictionary<string, IDictionary<string, string>>();
-                Plugins["overseerr"] = new Dictionary<string, string>()
-                {
-                    { "publicHostname", value }
-                };
-            }
+            return value;
         }
 
         public override string ToString()

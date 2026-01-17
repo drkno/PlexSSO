@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PlexSSO.Service.Config;
 
 namespace PlexSSO.Plugin
 {
@@ -6,5 +7,6 @@ namespace PlexSSO.Plugin
     {
         string Name { get; }
         void RegisterServices(IServiceCollection services);
+        void ConfigurePlugin(IConfigurationService configurationService) {}
     }
 }
