@@ -18,10 +18,10 @@ namespace PlexSSO.Deluge.Plugin.Service.DelugeClient
         private const string DelugeCookieName = "_session_id";
 
         private readonly HttpClient _httpClient;
-        private readonly IConfigurationService<PlexSsoConfig> _configurationService;
+        private readonly IConfigurationService _configurationService;
 
         public DelugeTokenService(IHttpClientFactory clientFactory,
-                                  IConfigurationService<PlexSsoConfig> configurationService)
+                                  IConfigurationService configurationService)
         {
             _httpClient = clientFactory.CreateClient();
             _configurationService = configurationService;
@@ -59,10 +59,9 @@ namespace PlexSSO.Deluge.Plugin.Service.DelugeClient
 
         private string GetHostname()
         {
-            return _configurationService.Config
-                .Plugins
-                .GetOrDefault(DelugeConstants.PluginName)?
-                .GetOrDefault(DelugeConstants.PublicHostname) ?? "";
+            return _configurationService
+                .GetPluginConfig<DelugeConfig>(DelugeConstants.PluginName)
+                .PublicHostname ?? "";
         }
     }
 }

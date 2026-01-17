@@ -64,6 +64,17 @@ class PlexLogin extends Component {
     }
 
     getRedirectParams() {
+        // Check for returnUrl in query params (used by OIDC)
+        const urlParams = new URLSearchParams(window.location.search);
+        const returnUrl = urlParams.get('returnUrl');
+        if (returnUrl) {
+            return {
+                service: 'oidc',
+                path: '/',
+                redirectPath: decodeURIComponent(returnUrl)
+            };
+        }
+
         if (window.location.pathname !== '/' &&
             !!window.location.pathname &&
             !window.location.pathname.startsWith('/redirect/') &&
@@ -95,7 +106,7 @@ class PlexLogin extends Component {
             } else {
                 setTimeout(() => {
                     window.location = result.redirectPath;
-                  }, 1000);
+                }, 1000);
             }
             return result.redirectPath;
         }
@@ -109,7 +120,7 @@ class PlexLogin extends Component {
             case 'error':
                 return (<>
                     <AccessDeniedPage message='An error occurred with your Plex account.<br/>Try logging out then in again.' />
-                    <LogoutForm logout={this.logout.bind(this)} tier={void(0)} redirectTo={void(0)} />
+                    <LogoutForm logout={this.logout.bind(this)} tier={void (0)} redirectTo={void (0)} />
                 </>);
             case true: return (<LogoutForm logout={this.logout.bind(this)} tier={this.state.tier} redirectTo={this.checkRedirect()} />);
             case false: return (<LoginForm login={this.login.bind(this)} failure={this.state.failedLogin} />);

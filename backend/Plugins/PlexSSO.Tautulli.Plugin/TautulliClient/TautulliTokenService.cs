@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using PlexSSO.Extensions;
 using PlexSSO.Model;
 using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
@@ -16,10 +15,10 @@ namespace PlexSSO.Tautulli.Plugin.TautulliClient
     public class TautulliTokenService : ITokenService
     {
         private readonly HttpClient _httpClient;
-        private readonly IConfigurationService<PlexSsoConfig> _configurationService;
+        private readonly IConfigurationService _configurationService;
 
         public TautulliTokenService(IHttpClientFactory clientFactory,
-                                    IConfigurationService<PlexSsoConfig> configurationService)
+                                    IConfigurationService configurationService)
         {
             _httpClient = clientFactory.CreateClient();
             _configurationService = configurationService;
@@ -67,10 +66,9 @@ namespace PlexSSO.Tautulli.Plugin.TautulliClient
 
         private string GetHostname()
         {
-            return _configurationService.Config
-                .Plugins
-                .GetOrDefault(TautulliConstants.PluginName)?
-                .GetOrDefault(TautulliConstants.PublicHostname) ?? "";
+            return _configurationService
+                .GetPluginConfig<TautulliConfig>(TautulliConstants.PluginName)
+                .PublicHostname ?? "";
         }
     }
 }

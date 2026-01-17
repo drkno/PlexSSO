@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlexSSO.Tautulli.Plugin", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlexSSO.Overseerr.Plugin", "Plugins\PlexSSO.Overseerr.Plugin\PlexSSO.Overseerr.Plugin.csproj", "{3AF304AE-ECB0-4DF8-88BF-F0079F88D7F2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlexSSO.Oidc.Plugin", "Plugins\PlexSSO.Oidc.Plugin\PlexSSO.Oidc.Plugin.csproj", "{4E786CFF-7C5D-426E-A9B8-F372D5080173}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlexSSO.Test", "PlexSSO.Test\PlexSSO.Test.csproj", "{9756F350-6DDE-49B6-8C5B-03F29236D82E}"
 EndProject
 Global
@@ -45,6 +47,10 @@ Global
 		{9756F350-6DDE-49B6-8C5B-03F29236D82E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9756F350-6DDE-49B6-8C5B-03F29236D82E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9756F350-6DDE-49B6-8C5B-03F29236D82E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E786CFF-7C5D-426E-A9B8-F372D5080173}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E786CFF-7C5D-426E-A9B8-F372D5080173}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E786CFF-7C5D-426E-A9B8-F372D5080173}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E786CFF-7C5D-426E-A9B8-F372D5080173}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

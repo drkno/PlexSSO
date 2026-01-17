@@ -19,11 +19,11 @@ namespace PlexSSO.Overseerr.Plugin.OverseerrClient
         private const string OverseerrCookieName = "connect.sid";
 
         private readonly HttpClient _httpClient;
-        private readonly IConfigurationService<PlexSsoConfig> _configurationService;
+        private readonly IConfigurationService _configurationService;
         private readonly ILogger<OverseerrTokenService> _logger;
 
         public OverseerrTokenService(IHttpClientFactory clientFactory,
-                                     IConfigurationService<PlexSsoConfig> configurationService,
+                                     IConfigurationService configurationService,
                                      ILogger<OverseerrTokenService> logger)
         {
             _httpClient = clientFactory.CreateClient();
@@ -68,10 +68,9 @@ namespace PlexSSO.Overseerr.Plugin.OverseerrClient
 
         private string GetHostname()
         {
-            return _configurationService.Config
-                .Plugins
-                .GetOrDefault(OverseerrConstants.PluginName)?
-                .GetOrDefault(OverseerrConstants.PublicHostname) ?? "";
+            return _configurationService
+                .GetPluginConfig<OverseerrConfig>(OverseerrConstants.PluginName)
+                .PublicHostname ?? "";
         }
     }
 }

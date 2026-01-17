@@ -12,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using PlexSSO.Model;
-using PlexSSO.Model.Internal;
 using PlexSSO.Service;
 using PlexSSO.Service.Config;
 using PlexSSO.Service.Plugin;
@@ -21,8 +20,8 @@ namespace PlexSSO
 {
     public class Startup
     {
-        private IConfigurationService<PlexSsoConfig> ConfigurationService { get; }
-        
+        private IConfigurationService ConfigurationService { get; }
+
         public Startup(IConfiguration configuration)
         {
             ConfigurationService = ServiceRegistry.LoadConfiguration(configuration);
@@ -41,15 +40,15 @@ namespace PlexSSO
                 options.Cookie.Name = Constants.CsrfCookieName;
                 options.HeaderName = Constants.CsrfHeaderName;
             });
-            
-            services.AddControllersWithViews().AddJsonOptions(opt =>
-            {
-                opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            });
-            services.AddSpaStaticFiles(configuration =>
-            {
-                configuration.RootPath = "ui";
-            });
+
+            ServiceRegistry.RegisterServices(services);
+
+            var controllersWithViews = services.AddControllersWithViews()
+                .AddJsonOptions(opt => { opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); })
+                .AddApplicationPart(typeof(Startup).Assembly);
+            PluginLoader.LoadPlugins(ConfigurationService, services, controllersWithViews);
+
+            services.AddSpaStaticFiles(configuration => { configuration.RootPath = "ui"; });
 
             services.AddHttpClient();
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -68,8 +67,6 @@ namespace PlexSSO
                 });
             services.AddHealthChecks();
             services.TryAddSingleton(ConfigurationService);
-            ServiceRegistry.RegisterServices(services);
-            PluginLoader.LoadPlugins(ConfigurationService, services);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IAntiforgery antiForgery)
@@ -82,7 +79,8 @@ namespace PlexSSO
             {
                 app.UseExceptionHandler(Constants.FourOhThreePath);
             }
-            app.Use((context, next) => {
+            app.Use((context, next) =>
+            {
                 var tokens = antiForgery.GetAndStoreTokens(context);
                 context.Response.Cookies.Append(Constants.CsrfHeaderName, tokens.RequestToken, new CookieOptions { HttpOnly = false });
                 context.Response.Headers.Append(Constants.PoweredByHeaderName, Constants.PoweredByHeaderValue);
@@ -91,10 +89,7 @@ namespace PlexSSO
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
             app.UseRouting();
-            app.UseSpa(spa =>
-            {
-                spa.Options.SourcePath = "ui";
-            });
+            app.UseSpa(spa => { spa.Options.SourcePath = "ui"; });
 
             app.UseAuthentication();
             app.UseAuthorization();

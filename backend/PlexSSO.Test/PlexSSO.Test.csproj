@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Plugins\PlexSSO.Oidc.Plugin\PlexSSO.Oidc.Plugin.csproj" />
       <ProjectReference Include="..\PlexSSO\PlexSSO.csproj" />
     </ItemGroup>
 

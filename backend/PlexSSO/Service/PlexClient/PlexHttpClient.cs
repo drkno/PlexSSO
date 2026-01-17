@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
-using PlexSSO.Model.Internal;
 using PlexSSO.Model.Types;
 
 namespace PlexSSO.Service.PlexClient
@@ -15,10 +14,10 @@ namespace PlexSSO.Service.PlexClient
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<PlexHttpClient> _logger;
-        private readonly Config.IConfigurationService<PlexSsoConfig> _configurationService;
+        private readonly Config.IConfigurationService _configurationService;
 
         public PlexHttpClient(ILogger<PlexHttpClient> logger, IHttpClientFactory clientFactory,
-            Config.IConfigurationService<PlexSsoConfig> configurationService)
+            Config.IConfigurationService configurationService)
         {
             _logger = logger;
             _configurationService = configurationService;
@@ -61,11 +60,14 @@ namespace PlexSSO.Service.PlexClient
         {
             var xml = await PerformGetRequest(token, "/users/account");
             var xmlDoc = XDocument.Parse(xml).Root;
+            var username = xmlDoc?.Element("username")?.Value ?? string.Empty;
 
             return new User(
-                xmlDoc?.Element("username")?.Value ?? string.Empty,
+                username,
+                xmlDoc?.Attribute("title")?.Value ?? username,
                 xmlDoc?.Element("email")?.Value ?? string.Empty,
-                xmlDoc?.Attribute("thumb")?.Value ?? string.Empty
+                xmlDoc?.Attribute("thumb")?.Value ?? string.Empty,
+                xmlDoc?.Attribute("uuid")?.Value ?? string.Empty
             );
         }
 

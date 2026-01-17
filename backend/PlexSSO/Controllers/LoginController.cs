@@ -54,8 +54,10 @@ namespace PlexSSO.Controllers
                 }
 
                 var user = await _plexClient.GetUserInfo(Identity.AccessToken);
+                Identity.UserIdentifier = user.UserIdentifier;
                 Identity.Email = user.Email;
                 Identity.Username = user.Username;
+                Identity.DisplayName = user.DisplayName;
                 Identity.Thumbnail = user.Thumbnail;
 
                 Identity.IsAuthenticated = true;
