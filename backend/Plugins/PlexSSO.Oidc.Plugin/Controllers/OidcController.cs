@@ -1,4 +1,6 @@
 using System;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlexSSO.Service.Config;
@@ -90,20 +92,26 @@ public class OidcController(
 
         if (grantType != "authorization_code")
         {
-            return BadRequest(new { error = "unsupported_grant_type" });
+            return BadRequest(new
+            {
+                error = "unsupported_grant_type"
+            });
         }
 
-        var response = oidcService.ExchangeCodeForToken(Identity, GetIssuer(), code, clientId, redirectUri);
+        var response = oidcService.ExchangeCodeForToken(GetIssuer(), code, clientId, redirectUri);
         if (response == null)
         {
-            return BadRequest(new { error = "invalid_grant" });
+            return BadRequest(new
+            {
+                error = "invalid_grant"
+            });
         }
 
         return Ok(response);
     }
 
     [HttpGet("/oidc/userinfo")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme + "," + CookieAuthenticationDefaults.AuthenticationScheme)]
     public OidcUserInfo UserInfo()
     {
         return new OidcUserInfo

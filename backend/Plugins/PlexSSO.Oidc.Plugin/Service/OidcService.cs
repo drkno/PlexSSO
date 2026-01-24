@@ -48,6 +48,11 @@ public class OidcService : IOidcService
         return new JsonWebKeySet { Keys = { jwk } };
     }
 
+    public SecurityKey GetSigningKey()
+    {
+        return _signingKey;
+    }
+
     public string CreateAuthorizationCode(Identity identity, string clientId, string redirectUri, string nonce)
     {
         var code = Guid.NewGuid().ToString("N");
@@ -55,11 +60,7 @@ public class OidcService : IOidcService
         {
             ClientId = clientId,
             RedirectUri = redirectUri,
-            Subject = identity.UserIdentifier,
-            Username = identity.Username,
-            DisplayName = identity.DisplayName,
-            Email = identity.Email,
-            Picture = identity.Thumbnail,
+            Identity = identity,
             Nonce = nonce,
             ExpiresAt = DateTime.UtcNow.AddSeconds(_config.AuthorizationCodeLifetimeSeconds)
         };
@@ -72,7 +73,6 @@ public class OidcService : IOidcService
     }
 
     public OidcTokenResponse ExchangeCodeForToken(
-        Identity identity,
         string issuer,
         string code,
         string clientId,
@@ -92,12 +92,11 @@ public class OidcService : IOidcService
         var tokenHandler = new JwtSecurityTokenHandler();
         var now = DateTime.UtcNow;
 
-        // Create ID Token
-        var claims = new List<Claim>
+        var claims = new List<Claim>(item.Identity.AsClaims())
         {
-            new Claim(JwtRegisteredClaimNames.Sub, item.Subject?.Value ?? ""),
-            new Claim(JwtRegisteredClaimNames.PreferredUsername, item.Username?.Value ?? ""),
-            new Claim(JwtRegisteredClaimNames.Name, item.DisplayName?.Value ?? item.Username?.Value ?? ""),
+            new Claim(JwtRegisteredClaimNames.Sub, item.Identity.UserIdentifier.Value ?? ""),
+            new Claim(JwtRegisteredClaimNames.PreferredUsername, item.Identity.Username.Value ?? ""),
+            new Claim(JwtRegisteredClaimNames.Name, item.Identity.DisplayName.Value ?? item.Identity.Username.Value ?? ""),
             new Claim(JwtRegisteredClaimNames.Iss, issuer),
             new Claim(JwtRegisteredClaimNames.Aud, clientId),
             new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(now).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
@@ -108,13 +107,13 @@ public class OidcService : IOidcService
         {
             claims.Add(new Claim(JwtRegisteredClaimNames.Nonce, item.Nonce));
         }
-        if (!string.IsNullOrEmpty(item.Email?.Value))
+        if (!string.IsNullOrEmpty(item.Identity.Email?.Value))
         {
-            claims.Add(new Claim(JwtRegisteredClaimNames.Email, item.Email.Value));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Email, item.Identity.Email.Value));
         }
-        if (!string.IsNullOrEmpty(item.Picture?.Value))
+        if (!string.IsNullOrEmpty(item.Identity.Thumbnail?.Value))
         {
-            claims.Add(new Claim(JwtRegisteredClaimNames.Picture, item.Picture.Value));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Picture, item.Identity.Thumbnail.Value));
         }
 
         var idTokenDescriptor = new SecurityTokenDescriptor

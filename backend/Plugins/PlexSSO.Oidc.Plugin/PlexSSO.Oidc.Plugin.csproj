@@ -9,10 +9,12 @@
 
 
     <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
         <ProjectReference Include="..\..\PlexSSO\PlexSSO.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.2" />
         <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.15.0" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />

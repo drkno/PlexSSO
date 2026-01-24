@@ -40,9 +40,11 @@ namespace PlexSSO.Model.Internal
                         Username = new Username(claim.Value);
                         break;
                     case Constants.DisplayNameClaim:
+                    case ClaimTypes.Name:
                         DisplayName = new DisplayName(claim.Value);
                         break;
                     case Constants.EmailClaim:
+                    case ClaimTypes.Email:
                         Email = new Email(claim.Value);
                         break;
                     case Constants.ThumbnailClaim:
