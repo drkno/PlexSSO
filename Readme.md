@@ -4,19 +4,25 @@
 
 An nginx `auth_request` Single Sign On service, using [Plex](https://plex.tv) as the upstream authorisation provider. This also works with [ingress-nginx](https://github.com/kubernetes/ingress-nginx) on kubernetes.
 
-This is designed to sit in front of various services and replace their authentication with a single unified login. It is compatible with services such as:
+This is designed to sit in front of various services and replace their authentication and authorization with a single unified login. It is compatible with services such as:
 
 - Bazarr
 - Deluge
 - Jackett
+- Jellyfin (via [jellyfin-plugin-sso](https://github.com/9p4/jellyfin-plugin-sso) and the built-in OIDC plugin)
+- Jellyseerr
 - Lidarr
 - NzbHydra (v1 and v2)
 - NzbGet
 - Ombi
+- Prowlarr
 - Radarr
-- Readarr
+- Readarr / Bookshelf
 - Sabnzbd
+- Seerr
 - Sonarr
+- Tautulli / PlexPy
+- Threadfin
 - Transcoderr
 - Transmission
 
@@ -100,6 +106,11 @@ _All CLI arguments have corresponding entries in the configuration file._
 | `-s`/`--server`      | See `serverIdentifier` in Configuration File section. |
 | `-p`/`--preferences` | See `plexPreferencesFile` in Configuration File section. |
 | `-c`/`--cookie-domain` | See `cookieDomain` in Configuration File section.  |
+
+## Extending
+
+Extending PlexSSO to new use-cases and login systems can be done without modifying the core PlexSSO codebase.  
+Create a new .dll library named "<your usecase>.Plugin.dll" in the working directory of the application. Within your library reference the core codebase and implement the `IPlugin` interface. This interface serves as the entrypoint to most functionality and will enable you to extend PlexSSO with anything new required for a particular login system or application.
 
 ## Contributing
 
