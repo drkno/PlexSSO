@@ -41,10 +41,8 @@ namespace PlexSSO.Controllers
                 Identity.AccessToken = new AccessToken(data.Token);
                 Identity.ServerIdentifier = _serverIdentifier;
 
-                if (!Identity.IsAuthenticated)
-                {
-                    Identity.AccessTier = await _plexClient.GetAccessTier(_serverIdentifier, Identity.AccessToken);
-                }
+                // Always set the AccessTier even if already logged in, as the user may have changed since last login
+                Identity.AccessTier = await _plexClient.GetAccessTier(_serverIdentifier, Identity.AccessToken);
 
                 if (Identity.AccessTier == AccessTier.Failure)
                 {

@@ -82,7 +82,30 @@ public class AuthenticationValidator(
     {
         var controls = GetAccessControls(serviceName);
         var matching = controls
-            .Where(control => control.Path == null || (serviceUri?.Value.StartsWith(control.Path) ?? false))
+            .Where(control =>
+            {
+                if (control.Path == null) {
+                    return true;
+                }
+
+                if (string.IsNullOrWhiteSpace(serviceUri?.Value)) {
+                    return false;
+                }
+
+                var path = serviceUri.Value;
+                // Case-insensitive to prevent /Admin bypassing a match to /admin
+                if (!path.StartsWith(control.Path, System.StringComparison.OrdinalIgnoreCase)) {
+                    return false;
+                }
+                
+                if (path.Length == control.Path.Length) {
+                    return true;
+                }
+                
+                // Prevent partial segment matching: /admin vs /admin-dashboard
+                // The second of these is a deliberate off-by-one, reading the character after the path match
+                return control.Path.EndsWith("/") || path[control.Path.Length] == '/';
+            })
             .FirstOrDefault(control =>
             {
                 var block = control.ControlType == ControlType.Allow

@@ -51,6 +51,63 @@ public class AuthenticationValidatorTest
     }
 
     [Test]
+    [TestCase("/admin", "/admin", true)]
+    [TestCase("/admin", "/Admin", true)]
+    [TestCase("/admin", "/admin/dashboard", true)]
+    [TestCase("/admin", "/admin-dashboard", false)]
+    [TestCase("/admin", "/user/admin", false)]
+    [TestCase("/admin/", "/admin", false)]
+    [TestCase("/admin/", "/admin/dashboard", true)]
+    public void Validate_PathMatching_CaseInsensitiveAndSegmentBased(string rulePath, string requestPath, bool shouldMatch)
+    {
+        var validator = CreateValidator();
+        var identity = new Identity(new List<Claim>()) { IsAuthenticated = true, AccessTier = AccessTier.NormalUser };
+        var serviceName = new ServiceName("status");
+        var serviceUri = new ServiceUri(requestPath);
+
+        _config!.AccessControls = new Dictionary<string, PlexSsoConfig.AccessControl[]>()
+        {
+            {
+                "status", new[]
+                {
+                    new PlexSsoConfig.AccessControl()
+                    {
+                        Path = rulePath,
+                        MinimumAccessTier = AccessTier.Owner,
+                        ControlType = PlexSsoConfig.ControlType.Block,
+                        BlockMessage = "Blocked"
+                    }
+                }
+            }
+        };
+
+        var result = validator.ValidateAuthenticationStatus(identity, serviceName, serviceUri);
+
+        if (shouldMatch)
+        {
+            AssertSsoResponse(result, new SsoResponse(
+                success: true,
+                loggedIn: true,
+                blocked: true,
+                accessTier: AccessTier.NoAccess,
+                status: 403,
+                message: "Blocked"
+            ));
+        }
+        else
+        {
+            AssertSsoResponse(result, new SsoResponse(
+                success: true,
+                loggedIn: true,
+                blocked: false,
+                accessTier: AccessTier.NormalUser,
+                status: 200,
+                message: Constants.DefaultAuthorizedMessage
+            ));
+        }
+    }
+
+    [Test]
     public void Validate_NotAuthenticated_ReturnsDefaultAccessDeniedMessage()
     {
         var validator = CreateValidator();
