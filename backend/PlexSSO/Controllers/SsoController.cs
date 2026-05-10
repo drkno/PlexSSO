@@ -30,10 +30,10 @@ namespace PlexSSO.Controllers
 
             if (Identity.IsAuthenticated)
             {
-                var success = Response.Headers.TryAdd(Constants.SsoResponseUserHeader, Identity.Username.ToString());
-                success = success || Response.Headers.TryAdd(Constants.SsoResponseEmailHeader, Identity.Email.ToString());
+                var successUser = Response.Headers.TryAdd(Constants.SsoResponseUserHeader, Identity.Username.ToString());
+                var successEmail = Response.Headers.TryAdd(Constants.SsoResponseEmailHeader, Identity.Email.ToString());
 
-                if (!success)
+                if (!successUser || !successEmail)
                 {
                     _logger.LogWarning("Adding response headers failed:\n{headers}", Response.Headers);
                 }
