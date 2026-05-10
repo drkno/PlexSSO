@@ -1,12 +1,12 @@
-FROM node:current-alpine as react-builder
+FROM node:current-alpine AS react-builder
 COPY ./ui /ui
 WORKDIR /ui
-RUN rm /usr/local/bin/yarn* && \
+RUN rm -f /usr/local/bin/yarn* && \
     npm install -g corepack@latest && \
     corepack yarn && \
     corepack yarn build
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 as aspnet-builder
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS aspnet-builder
 COPY ./backend /backend
 WORKDIR /backend
 RUN dotnet restore && \
