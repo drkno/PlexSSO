@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -16,13 +15,16 @@ namespace PlexSSO.Tautulli.Plugin.TautulliClient
 {
     public class TautulliTokenService : ITokenService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private static readonly JsonSerializerOptions _options = new()
+        {
+            AllowTrailingCommas = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true
+        };
         private readonly IConfigurationService _configurationService;
 
-        public TautulliTokenService(IHttpClientFactory clientFactory,
-                                    IConfigurationService configurationService)
+        public TautulliTokenService(IConfigurationService configurationService)
         {
-            _httpClientFactory = clientFactory;
             _configurationService = configurationService;
         }
 
@@ -40,39 +42,20 @@ namespace PlexSSO.Tautulli.Plugin.TautulliClient
 
             var hostname = GetHostname();
 
-            // Perform a GET on the sign-in page first so Tautulli sets its CSRF cookie.
-            var getRequest = new HttpRequestMessage(HttpMethod.Get, hostname + "/auth/signin");
-            getRequest.Headers.Add("Accept", "text/html");
-            getRequest.Headers.Add("User-Agent", "PlexSSO/2");
-            await httpClient.SendAsync(getRequest);
-
-            // Extract the CSRF token from the cookie Tautulli just set.
-            var cookies = cookieContainer.GetCookies(new Uri(hostname));
-            var csrfToken = cookies["_csrf_token"]?.Value
-                         ?? cookies.Cast<Cookie>()
-                                   .FirstOrDefault(c => c.Name.Contains("csrf", StringComparison.OrdinalIgnoreCase))
-                                   ?.Value
-                         ?? string.Empty;
-
             var request = new HttpRequestMessage(HttpMethod.Post, hostname + "/auth/signin");
             request.Content = new StringContent(
-                $"username=&password=&token={identity.AccessToken.Value}&remember_me=1&_csrf_token={Uri.EscapeDataString(csrfToken)}",
+                $"username=&password=&token={identity.AccessToken.Value}&remember_me=1",
                 Encoding.UTF8,
                 "application/x-www-form-urlencoded");
             request.Headers.Add("Accept", "application/json");
             request.Headers.Add("User-Agent", "PlexSSO/2");
+            request.Headers.Add("X-Api-Key", GetApiKey());
 
             var response = await httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync();
-
-            var tautulliResponse = JsonSerializer.Deserialize<TautulliTokenResponse>(json, new JsonSerializerOptions
-            {
-                AllowTrailingCommas = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                PropertyNameCaseInsensitive = true
-            });
+            var tautulliResponse = JsonSerializer.Deserialize<TautulliTokenResponse>(json, _options);
 
             if (string.IsNullOrWhiteSpace(tautulliResponse?.Token) || tautulliResponse.Status != "success")
             {
@@ -89,9 +72,32 @@ namespace PlexSSO.Tautulli.Plugin.TautulliClient
 
         private string GetHostname()
         {
-            return _configurationService
-                .GetPluginConfig<TautulliConfig>(TautulliConstants.PluginName)
-                .PublicHostname ?? "";
+            return ThrowIfNullOrEmpty(
+                _configurationService
+                    .GetPluginConfig<TautulliConfig>(TautulliConstants.PluginName)
+                    .PublicHostname,
+                "Public Hostname"
+            );
+        }
+
+        private string GetApiKey()
+        {
+            return ThrowIfNullOrEmpty(
+                _configurationService
+                    .GetPluginConfig<TautulliConfig>(TautulliConstants.PluginName)
+                    .ApiKey,
+                "API Key"
+            );
+        }
+
+        private string ThrowIfNullOrEmpty(string value, string name)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new InvalidOperationException($"Tautulli {name} is not configured.");
+            }
+
+            return value;
         }
     }
 }

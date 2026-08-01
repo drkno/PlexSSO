@@ -108,6 +108,7 @@ backend/$tf/
 backend/_ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
+backend/PlexSSO.sln.DotSettings.user
 
 # JustCode is a .NET coding add-in
 backend/.JustCode
