@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Caching.Memory;
@@ -14,6 +15,7 @@ namespace PlexSSO.Oidc.Plugin.Service;
 public class OidcService : IOidcService
 {
     private readonly OidcConfig _config;
+    private readonly string _cookieDomain;
     private readonly RsaSecurityKey _signingKey;
         
     private readonly IMemoryCache _authCodes;
@@ -22,6 +24,17 @@ public class OidcService : IOidcService
     {
         _config = configService
             .GetPluginConfig<OidcConfig>(OidcConstants.PluginName);
+        _cookieDomain = configService.Config?.CookieDomain;
+
+        if (_config.TrustCookieDomainClients)
+        {
+            Console.WriteLine(
+                "WARNING: oidc plugin has trustCookieDomainClients enabled - any application " +
+                $"reachable under cookieDomain ({_cookieDomain}) can receive OIDC authorization " +
+                "codes and be issued tokens for any client_id it requests, without being listed " +
+                "in the oidc \"clients\" registry. Only leave this enabled if every service on " +
+                "that domain is fully trusted. See docs/oidc-plugin.md.");
+        }
             
         var rsa = RSA.Create(_config.SigningKeySizeBits);
         if (!string.IsNullOrWhiteSpace(_config.SigningKey))
@@ -53,8 +66,63 @@ public class OidcService : IOidcService
         return _signingKey;
     }
 
+    public bool IsRedirectUriAllowed(string clientId, string redirectUri)
+    {
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(redirectUri))
+        {
+            return false;
+        }
+
+        // Exact, case-sensitive match against the registered client/redirect-uri registry only.
+        // Never prefix/substring match - "https://good.example.com.evil.com" must not match
+        // "https://good.example.com".
+        var registeredMatch = _config.Clients != null && _config.Clients.Any(client =>
+            string.Equals(client.ClientId, clientId, StringComparison.Ordinal) &&
+            client.RedirectUris != null &&
+            client.RedirectUris.Any(uri => string.Equals(uri, redirectUri, StringComparison.Ordinal)));
+        if (registeredMatch)
+        {
+            return true;
+        }
+
+        return _config.TrustCookieDomainClients && IsWithinCookieDomain(redirectUri);
+    }
+
+    private bool IsWithinCookieDomain(string redirectUri)
+    {
+        if (string.IsNullOrWhiteSpace(_cookieDomain))
+        {
+            return false;
+        }
+        if (!Uri.TryCreate(redirectUri, UriKind.Absolute, out var uri))
+        {
+            return false;
+        }
+        if (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp)
+        {
+            return false;
+        }
+
+        var domain = _cookieDomain.Trim();
+        if (domain.StartsWith('.'))
+        {
+            // Leading-dot cookie domain convention (see PlexSsoConfig.CookieDomain): matches the
+            // bare domain itself and any subdomain of it.
+            var bareDomain = domain[1..];
+            return string.Equals(uri.Host, bareDomain, StringComparison.OrdinalIgnoreCase)
+                   || uri.Host.EndsWith("." + bareDomain, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return string.Equals(uri.Host, domain, StringComparison.OrdinalIgnoreCase);
+    }
+
     public string CreateAuthorizationCode(Identity identity, string clientId, string redirectUri, string nonce)
     {
+        if (!IsRedirectUriAllowed(clientId, redirectUri))
+        {
+            return null;
+        }
+
         var code = Guid.NewGuid().ToString("N");
         var item = new OidcAuthCodeItem
         {

@@ -30,6 +30,14 @@ namespace PlexSSO.Model.Internal
             { "example-service", new[] { new AccessControl { Exempt = new[] { new Username("some-exempt-user")  } } } }
         };
 
+        /// <summary>
+        /// Names (IPlugin.Name, e.g. "oidc") of plugins that should not be loaded, even though their
+        /// *.Plugin.dll was discovered in pluginDirectory. A disabled plugin's services, endpoints and
+        /// routes are never registered - this is stronger than a plugin-specific "enabled" config flag,
+        /// since the plugin's controllers are not wired into routing at all. Matching is case-insensitive.
+        /// </summary>
+        public string[] DisabledPlugins { get; set; } = Array.Empty<string>();
+
         [Obsolete]
         public IDictionary<string, IDictionary<string, string>> Plugins { get; set; } = new Dictionary<string, IDictionary<string, string>>();
 
@@ -54,6 +62,7 @@ namespace PlexSSO.Model.Internal
             return $"ServerIdentifier = {ServerIdentifier}\n" +
                    $"PlexPreferencesFile = {PlexPreferencesFile}\n" +
                    $"CookieDomain = {CookieDomain}\n" +
+                   $"DisabledPlugins = [{string.Join(',', DisabledPlugins)}]\n" +
                    $"AccessControls = {{\n{accessControls}\n}}\n" +
                    $"DefaultAccessDeniedMessage = {DefaultAccessDeniedMessage}";
         }

@@ -71,6 +71,18 @@ public class OidcController(
         }
 
         var code = oidcService.CreateAuthorizationCode(Identity, clientId, redirectUri, nonce);
+        if (code == null)
+        {
+            // client_id/redirect_uri is not a registered client (see IOidcService.IsRedirectUriAllowed).
+            // Never redirect to an unvalidated redirect_uri - that would hand the caller an
+            // authorization code for the current user's identity. Report the error directly instead.
+            return BadRequest(new
+            {
+                error = "unauthorized_client",
+                error_description = "client_id/redirect_uri is not registered with this OIDC provider"
+            });
+        }
+
         var separator = redirectUri.Contains('?') ? "&" : "?";
         var redirectUrl = $"{redirectUri}{separator}code={code}&state={state}";
         return Redirect(redirectUrl);

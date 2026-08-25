@@ -74,6 +74,7 @@ By default PlexSSO is configurable using a configuration stored in the `config.j
 | `serverIdentifier`    | Your plex server identifier. See the "Retrieving Plex Server Identifier" section below. |
 | `plexPreferencesFile` | The path to your Plex `Preferences.xml` file, used to extract your Plex server identifier. This argument is relative to docker, so a volume must be configured in order to use this option. Additionally, it is mutually exclusive to `serverIdentifier` as it serves the same purpose. |
 | `cookieDomain` | The domain to use for the authentication cookie. If all of your services are on subdomains `*.example.com` and your SSO is at `login.example.com` then this should be set to `.example.com`. See [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies) for more information. |
+| `disabledPlugins` | An array of plugin names (e.g. `["oidc"]`) that should not be loaded, even if their `*.Plugin.dll` is present in the plugin directory. See [Disabling Plugins](#disabling-plugins) below. |
 | `accessControls` | A section for defining rules about which users are allowed to access which services. The default rule is that all users with access to your Plex server have access to all services. This section takes the form of a map/dictionary, with the service names being the key (as passed from `nginx`/other reverse proxy via the `X-PlexSSO-For` header) to list/array of rules. |
 | `defaultAccessDeniedMessage` | The default message to show when an request is blocked but not by a rule. |
 
@@ -108,6 +109,28 @@ _All CLI arguments have corresponding entries in the configuration file._
 | `-s`/`--server`      | See `serverIdentifier` in Configuration File section. |
 | `-p`/`--preferences` | See `plexPreferencesFile` in Configuration File section. |
 | `-c`/`--cookie-domain` | See `cookieDomain` in Configuration File section.  |
+
+## Plugins
+
+PlexSSO ships with several bundled plugins (including OIDC - see [`docs/oidc-plugin.md`](docs/oidc-plugin.md)
+for its client registry and configuration). Any `*.Plugin.dll` found in the plugin directory is
+loaded and its routes/endpoints registered automatically on startup - no additional configuration
+is required to enable a plugin that is present.
+
+### Disabling Plugins
+
+To prevent a discovered plugin from being loaded at all (its services, routes, and endpoints will
+not be registered), add its name to `disabledPlugins` in `config.json`:
+
+```js
+{
+  "disabledPlugins": ["oidc"]
+}
+```
+
+This is stronger than a plugin's own `enabled` flag (where one exists) since the plugin's
+controllers are never wired into ASP.NET routing in the first place, rather than being reachable
+but returning an error response.
 
 ## Extending
 
