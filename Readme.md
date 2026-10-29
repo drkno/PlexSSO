@@ -76,6 +76,9 @@ By default PlexSSO is configurable using a configuration stored in the `config.j
 | `cookieDomain` | The domain to use for the authentication cookie. If all of your services are on subdomains `*.example.com` and your SSO is at `login.example.com` then this should be set to `.example.com`. See [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies) for more information. |
 | `disabledPlugins` | An array of plugin names (e.g. `["oidc"]`) that should not be loaded, even if their `*.Plugin.dll` is present in the plugin directory. See [Disabling Plugins](#disabling-plugins) below. |
 | `accessControls` | A section for defining rules about which users are allowed to access which services. The default rule is that all users with access to your Plex server have access to all services. This section takes the form of a map/dictionary, with the service names being the key (as passed from `nginx`/other reverse proxy via the `X-PlexSSO-For` header) to list/array of rules. |
+| `requireTwoFactorAuthentication` | Optional, defaults to `false`. When `true`, users must have two-factor authentication enabled on their Plex account to log in. This is re-checked hourly along with the user's server access, so a user who later disables 2FA is signed out. If plex.tv cannot report a user's 2FA status, logins are refused but existing sessions are kept. |
+| `twoFactorExempt` | Optional array of Plex usernames allowed to log in without two-factor authentication when `requireTwoFactorAuthentication` is enabled. |
+| `twoFactorRequiredMessage` | Optional message shown to users blocked because they do not have two-factor authentication enabled. |
 | `defaultAccessDeniedMessage` | The default message to show when an request is blocked but not by a rule. |
 
 ### Access Control Service Rules

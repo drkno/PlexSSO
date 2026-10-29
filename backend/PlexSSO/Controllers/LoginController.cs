@@ -20,15 +20,18 @@ namespace PlexSSO.Controllers
         private readonly ILogger<LoginController> _logger;
         private readonly IPlexClient _plexClient;
         private readonly IAuthValidator _authValidator;
+        private readonly TwoFactorPolicy _twoFactorPolicy;
         private readonly ServerIdentifier _serverIdentifier;
 
         public LoginController(ILogger<LoginController> logger,
                                IPlexClient plexClient,
-                               IAuthValidator authValidator)
+                               IAuthValidator authValidator,
+                               TwoFactorPolicy twoFactorPolicy)
         {
             _logger = logger;
             _plexClient = plexClient;
             _authValidator = authValidator;
+            _twoFactorPolicy = twoFactorPolicy;
             _serverIdentifier = plexClient.GetPlexServerIdentifier();
         }
 
@@ -57,6 +60,17 @@ namespace PlexSSO.Controllers
                 Identity.Username = user.Username;
                 Identity.DisplayName = user.DisplayName;
                 Identity.Thumbnail = user.Thumbnail;
+
+                var twoFactorSatisfied = await _twoFactorPolicy.IsSatisfied(Identity.Username, Identity.AccessToken);
+                if (twoFactorSatisfied != true)
+                {
+                    _logger.LogWarning("Blocked login for {user}: two-factor authentication is required but {state}",
+                        Identity.Username, twoFactorSatisfied == null ? "its status could not be retrieved" : "is not enabled");
+                    Identity.AccessTier = AccessTier.NoAccess;
+                    Identity.IsAuthenticated = false;
+                    Response.StatusCode = 403;
+                    return new SsoResponse(true, false, true, AccessTier.NoAccess, 403, _twoFactorPolicy.RequiredMessage);
+                }
 
                 Identity.IsAuthenticated = true;
 

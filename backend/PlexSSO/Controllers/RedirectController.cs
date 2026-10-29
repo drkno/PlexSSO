@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,9 @@ namespace PlexSSO.Controllers
     [Route("[controller]")]
     public class RedirectController : CommonAuthController
     {
+        private static readonly Regex SubdomainRegex =
+            new("^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$", RegexOptions.Compiled);
+
         private readonly IConfigurationService _configurationService;
         private readonly IEnumerable<ITokenService> _tokenServices;
         private readonly ILogger<RedirectController> _logger;
@@ -32,7 +36,17 @@ namespace PlexSSO.Controllers
 
         [HttpGet("{*location}")]
         public async Task<BasicResponse> Get(string location)
-        {           
+        {
+            // The first path segment becomes the subdomain of the redirect target. Anything other than a
+            // plain DNS label (e.g. "evil.com#" or "evil.com?") would let the host portion escape our domain.
+            if (!IsValidSubdomain(location?.Split('/')[0]))
+            {
+                // Deliberately not logging the value: it is attacker controlled
+                _logger.LogWarning("Rejected redirect with an invalid subdomain");
+                Response.StatusCode = 400;
+                return new BasicResponse(false);
+            }
+
             var redirectComponents = GetRedirectComponents(location);
             int redirectStatus;
 
@@ -70,7 +84,8 @@ namespace PlexSSO.Controllers
                 Path = "/",
                 Secure = false
             });
-            _logger.LogInformation($"Performing service specific redirect to '{location}' with status {authenticationToken.StatusCode}. Added Location header = {redirectSuccess}");
+            _logger.LogInformation("Performing service specific redirect to '{location}' with status {status}. Added Location header = {added}",
+                StripLineBreaks(location), authenticationToken.StatusCode, redirectSuccess);
             return authenticationToken.StatusCode;
         }
 
@@ -80,8 +95,20 @@ namespace PlexSSO.Controllers
             var protoString = protocol == Protocol.Https ? "https://" : "http://";
             var location = protoString + host + path;
             var redirectSuccess = Response.Headers.TryAdd("Location", location);
-            _logger.LogInformation($"Attempting redirect to '{location}' with status 302. Added Location header = {redirectSuccess}");
+            _logger.LogInformation("Attempting redirect to '{location}' with status 302. Added Location header = {added}",
+                StripLineBreaks(location), redirectSuccess);
             return 302;
+        }
+
+        // The path and query string are user controlled; prevent them forging additional log entries
+        private static string StripLineBreaks(string value)
+        {
+            return value?.Replace("\r", string.Empty).Replace("\n", string.Empty);
+        }
+
+        public static bool IsValidSubdomain(string subdomain)
+        {
+            return !string.IsNullOrEmpty(subdomain) && SubdomainRegex.IsMatch(subdomain);
         }
 
         private (Protocol, string, string) GetRedirectComponents(string location)

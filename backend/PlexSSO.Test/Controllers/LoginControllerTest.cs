@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using PlexSSO.Test.Service.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -31,7 +34,8 @@ public class LoginControllerTest
         plexClient.GetAccessTier(Arg.Any<ServerIdentifier>(), Arg.Any<AccessToken>())
             .Returns(Task.FromResult(AccessTier.Failure));
 
-        var controller = new LoginController(logger, plexClient, authValidator);
+        var controller = new LoginController(logger, plexClient, authValidator,
+            TwoFactorPolicyFactory.Create(plexClient, requireTwoFactor: false));
 
         var httpContext = new DefaultHttpContext();
         var claims = new List<Claim>
@@ -57,5 +61,64 @@ public class LoginControllerTest
         // Assert that the result is an error because AccessTier was Failure
         Assert.That(result.Success, Is.False);
         Assert.That(result.Status, Is.EqualTo(400));
+    }
+
+    private static (LoginController, IPlexClient) CreateTwoFactorController(bool? twoFactorEnabled, params string[] exempt)
+    {
+        var plexClient = Substitute.For<IPlexClient>();
+        plexClient.GetPlexServerIdentifier().Returns(new ServerIdentifier("test-server"));
+        plexClient.GetAccessTier(default!, default!).ReturnsForAnyArgs(AccessTier.NormalUser);
+        plexClient.GetUserInfo(default!).ReturnsForAnyArgs(new User("testuser", "Test", "test@example.com", "", "uuid"));
+        plexClient.IsTwoFactorEnabled(default!).ReturnsForAnyArgs(twoFactorEnabled);
+
+        var authValidator = Substitute.For<IAuthValidator>();
+        authValidator.ValidateAuthenticationStatus(default!, default!, default!)
+            .ReturnsForAnyArgs(new SsoResponse(true, true, false, AccessTier.NormalUser, 200, ""));
+
+        var controller = new LoginController(Substitute.For<ILogger<LoginController>>(), plexClient, authValidator,
+            TwoFactorPolicyFactory.Create(plexClient, requireTwoFactor: true, exempt));
+        var services = new ServiceCollection()
+            .AddSingleton(Substitute.For<IAuthenticationService>())
+            .BuildServiceProvider();
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext { RequestServices = services }
+        };
+        return (controller, plexClient);
+    }
+
+    [TestCase(false)]
+    [TestCase(null)]
+    public async Task Login_WhenTwoFactorRequiredButNotConfirmed_IsBlocked(bool? twoFactorEnabled)
+    {
+        var (controller, _) = CreateTwoFactorController(twoFactorEnabled);
+
+        var result = await controller.Login(new LoginPost { Token = "token" });
+
+        Assert.That(result.Status, Is.EqualTo(403));
+        Assert.That(result.AccessBlocked, Is.True);
+        Assert.That(result.LoggedIn, Is.False);
+        Assert.That(controller.Response.StatusCode, Is.EqualTo(403));
+    }
+
+    [Test]
+    public async Task Login_WhenTwoFactorRequiredAndEnabled_Succeeds()
+    {
+        var (controller, _) = CreateTwoFactorController(true);
+
+        var result = await controller.Login(new LoginPost { Token = "token" });
+
+        Assert.That(result.Status, Is.EqualTo(200));
+    }
+
+    [Test]
+    public async Task Login_WhenTwoFactorRequiredButUserExempt_SkipsCheck()
+    {
+        var (controller, plexClient) = CreateTwoFactorController(false, "testuser");
+
+        var result = await controller.Login(new LoginPost { Token = "token" });
+
+        Assert.That(result.Status, Is.EqualTo(200));
+        await plexClient.DidNotReceiveWithAnyArgs().IsTwoFactorEnabled(default!);
     }
 }
