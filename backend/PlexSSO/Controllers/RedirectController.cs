@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,9 @@ namespace PlexSSO.Controllers
     [Route("[controller]")]
     public class RedirectController : CommonAuthController
     {
+        private static readonly Regex SubdomainRegex =
+            new("^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$", RegexOptions.Compiled);
+
         private readonly IConfigurationService _configurationService;
         private readonly IEnumerable<ITokenService> _tokenServices;
         private readonly ILogger<RedirectController> _logger;
@@ -32,7 +36,16 @@ namespace PlexSSO.Controllers
 
         [HttpGet("{*location}")]
         public async Task<BasicResponse> Get(string location)
-        {           
+        {
+            // The first path segment becomes the subdomain of the redirect target. Anything other than a
+            // plain DNS label (e.g. "evil.com#" or "evil.com?") would let the host portion escape our domain.
+            if (!IsValidSubdomain(location?.Split('/')[0]))
+            {
+                _logger.LogWarning("Rejected redirect with invalid subdomain in '{location}'", location);
+                Response.StatusCode = 400;
+                return new BasicResponse(false);
+            }
+
             var redirectComponents = GetRedirectComponents(location);
             int redirectStatus;
 
@@ -82,6 +95,11 @@ namespace PlexSSO.Controllers
             var redirectSuccess = Response.Headers.TryAdd("Location", location);
             _logger.LogInformation($"Attempting redirect to '{location}' with status 302. Added Location header = {redirectSuccess}");
             return 302;
+        }
+
+        public static bool IsValidSubdomain(string subdomain)
+        {
+            return !string.IsNullOrEmpty(subdomain) && SubdomainRegex.IsMatch(subdomain);
         }
 
         private (Protocol, string, string) GetRedirectComponents(string location)

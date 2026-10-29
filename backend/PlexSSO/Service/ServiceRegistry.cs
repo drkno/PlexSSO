@@ -17,6 +17,8 @@ namespace PlexSSO.Service
         {
             services.AddSingleton<IPlexClient, PlexHttpClient>();
             services.AddSingleton<IAuthValidator, AuthenticationValidator>();
+            services.AddMemoryCache();
+            services.AddSingleton<AccessTierRevalidator>();
         }
     }
 }

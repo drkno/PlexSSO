@@ -16,6 +16,8 @@ namespace PlexSSO.Model
         public const int CookieExpireDays = 1;
         public const int RedirectCookieExpireDays = 1;
         public const int KeyLifeSpanDays = 500;
+        public const int AccessTierRevalidationMinutes = 60;
+        public const int AccessTierFailureRetryMinutes = 1;
 
         public const string CsrfCookieName = "kPlexSSOCsrfKookie";
         public const string CsrfHeaderName = "X-PlexSSO-CSRF-Token";

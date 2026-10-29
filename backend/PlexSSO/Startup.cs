@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using PlexSSO.Model;
 using PlexSSO.Service;
+using PlexSSO.Service.Auth;
 using PlexSSO.Service.Config;
 using PlexSSO.Service.Plugin;
 
@@ -59,6 +60,7 @@ namespace PlexSSO
                     options.LoginPath = $"/{Constants.ApiPrefix}login";
                     options.LogoutPath = $"/{Constants.ApiPrefix}logout";
                     options.ExpireTimeSpan = TimeSpan.FromDays(Constants.CookieExpireDays);
+                    options.EventsType = typeof(AccessTierRevalidator);
                     var cookieDomain = ConfigurationService.Config.CookieDomain;
                     if (!string.IsNullOrWhiteSpace(cookieDomain))
                     {

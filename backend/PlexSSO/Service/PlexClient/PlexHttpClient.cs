@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -48,6 +49,12 @@ namespace PlexSSO.Service.PlexClient
                     .Select(x => x.Item2)
                     .FirstOrDefault();
                 return accessLevel == default ? AccessTier.NoAccess : accessLevel;
+            }
+            catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            {
+                // The token itself was rejected (signed out / revoked), which is distinct from plex.tv being unavailable
+                _logger.LogWarning("Plex rejected access token while retrieving access tier: {status}", e.StatusCode);
+                return AccessTier.NoAccess;
             }
             catch (Exception e)
             {
