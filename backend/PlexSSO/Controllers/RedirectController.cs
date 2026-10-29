@@ -41,7 +41,8 @@ namespace PlexSSO.Controllers
             // plain DNS label (e.g. "evil.com#" or "evil.com?") would let the host portion escape our domain.
             if (!IsValidSubdomain(location?.Split('/')[0]))
             {
-                _logger.LogWarning("Rejected redirect with invalid subdomain in '{location}'", location);
+                // Deliberately not logging the value: it is attacker controlled
+                _logger.LogWarning("Rejected redirect with an invalid subdomain");
                 Response.StatusCode = 400;
                 return new BasicResponse(false);
             }
@@ -83,7 +84,8 @@ namespace PlexSSO.Controllers
                 Path = "/",
                 Secure = false
             });
-            _logger.LogInformation($"Performing service specific redirect to '{location}' with status {authenticationToken.StatusCode}. Added Location header = {redirectSuccess}");
+            _logger.LogInformation("Performing service specific redirect to '{location}' with status {status}. Added Location header = {added}",
+                StripLineBreaks(location), authenticationToken.StatusCode, redirectSuccess);
             return authenticationToken.StatusCode;
         }
 
@@ -93,8 +95,15 @@ namespace PlexSSO.Controllers
             var protoString = protocol == Protocol.Https ? "https://" : "http://";
             var location = protoString + host + path;
             var redirectSuccess = Response.Headers.TryAdd("Location", location);
-            _logger.LogInformation($"Attempting redirect to '{location}' with status 302. Added Location header = {redirectSuccess}");
+            _logger.LogInformation("Attempting redirect to '{location}' with status 302. Added Location header = {added}",
+                StripLineBreaks(location), redirectSuccess);
             return 302;
+        }
+
+        // The path and query string are user controlled; prevent them forging additional log entries
+        private static string StripLineBreaks(string value)
+        {
+            return value?.Replace("\r", string.Empty).Replace("\n", string.Empty);
         }
 
         public static bool IsValidSubdomain(string subdomain)
