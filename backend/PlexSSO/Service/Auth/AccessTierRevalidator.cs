@@ -17,12 +17,14 @@ namespace PlexSSO.Service.Auth;
 /// <summary>
 /// Re-checks the access tier stored in the auth cookie against plex.tv so that users who lose (or change)
 /// access to the Plex server lose (or change) access here too, without waiting for the cookie to expire.
+/// When two-factor authentication is required, users who disable it on their Plex account also lose access.
 ///
 /// Results are cached per access token rather than written back to the cookie, as most validations happen
 /// within nginx auth_request sub-requests whose Set-Cookie headers never reach the browser.
 /// </summary>
 public class AccessTierRevalidator(
     IPlexClient plexClient,
+    TwoFactorPolicy twoFactorPolicy,
     IMemoryCache cache,
     ILogger<AccessTierRevalidator> logger)
     : CookieAuthenticationEvents
@@ -72,6 +74,17 @@ public class AccessTierRevalidator(
         return await cache.GetOrCreateAsync(cacheKey, async entry =>
         {
             var tier = await plexClient.GetAccessTier(serverIdentifier, identity.AccessToken);
+            if (tier is not (AccessTier.Failure or AccessTier.NoAccess))
+            {
+                var twoFactorSatisfied = await twoFactorPolicy.IsSatisfied(identity.Username, identity.AccessToken);
+                tier = twoFactorSatisfied switch
+                {
+                    false => AccessTier.NoAccess,
+                    // Status unavailable: treat like plex.tv being down and keep the existing tier
+                    null => AccessTier.Failure,
+                    true => tier
+                };
+            }
             entry.AbsoluteExpirationRelativeToNow = tier == AccessTier.Failure
                 ? FailureRetryInterval
                 : RevalidationInterval;

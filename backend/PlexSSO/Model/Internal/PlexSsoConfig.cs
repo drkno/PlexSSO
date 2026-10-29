@@ -38,6 +38,20 @@ namespace PlexSSO.Model.Internal
         /// </summary>
         public string[] DisabledPlugins { get; set; } = Array.Empty<string>();
 
+        /// <summary>
+        /// Opt-in: when true, users must have two-factor authentication enabled on their Plex account to log in.
+        /// Re-checked alongside the access tier, so turning 2FA off later also removes access.
+        /// </summary>
+        public bool RequireTwoFactorAuthentication { get; set; } = false;
+
+        /// <summary>
+        /// Usernames that are allowed to log in without two-factor authentication when it is required.
+        /// </summary>
+        public Username[] TwoFactorExempt { get; set; } = Array.Empty<Username>();
+
+        public string TwoFactorRequiredMessage { get; set; } =
+            "Two-factor authentication must be enabled on your Plex account to use this service.";
+
         [Obsolete]
         public IDictionary<string, IDictionary<string, string>> Plugins { get; set; } = new Dictionary<string, IDictionary<string, string>>();
 
@@ -63,6 +77,8 @@ namespace PlexSSO.Model.Internal
                    $"PlexPreferencesFile = {PlexPreferencesFile}\n" +
                    $"CookieDomain = {CookieDomain}\n" +
                    $"DisabledPlugins = [{string.Join(',', DisabledPlugins)}]\n" +
+                   $"RequireTwoFactorAuthentication = {RequireTwoFactorAuthentication}\n" +
+                   $"TwoFactorExempt = [{string.Join(',', (IEnumerable<Username>) TwoFactorExempt ?? [])}]\n" +
                    $"AccessControls = {{\n{accessControls}\n}}\n" +
                    $"DefaultAccessDeniedMessage = {DefaultAccessDeniedMessage}";
         }

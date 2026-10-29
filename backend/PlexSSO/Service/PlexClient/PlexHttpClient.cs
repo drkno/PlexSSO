@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
@@ -76,6 +77,24 @@ namespace PlexSSO.Service.PlexClient
                 xmlDoc?.Attribute("thumb")?.Value ?? string.Empty,
                 xmlDoc?.Attribute("uuid")?.Value ?? string.Empty
             );
+        }
+
+        public async Task<bool?> IsTwoFactorEnabled(AccessToken token)
+        {
+            try
+            {
+                var json = await PerformGetRequest(token, "/api/v2/user");
+                using var doc = JsonDocument.Parse(json);
+                return doc.RootElement.TryGetProperty("twoFactorEnabled", out var value)
+                       && value.ValueKind is JsonValueKind.True or JsonValueKind.False
+                    ? value.GetBoolean()
+                    : null;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Retrieving two-factor authentication status failed");
+                return null;
+            }
         }
 
         private async Task<IEnumerable<(string, string, string)>> GetServers(AccessToken token)

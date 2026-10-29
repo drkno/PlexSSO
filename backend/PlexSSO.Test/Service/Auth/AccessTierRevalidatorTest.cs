@@ -26,7 +26,13 @@ public class AccessTierRevalidatorTest
     {
         _plexClient = Substitute.For<IPlexClient>();
         _cache = new MemoryCache(new MemoryCacheOptions());
-        _revalidator = new AccessTierRevalidator(_plexClient, _cache,
+        _revalidator = CreateRevalidator(requireTwoFactor: false);
+    }
+
+    private AccessTierRevalidator CreateRevalidator(bool requireTwoFactor, params string[] exempt)
+    {
+        return new AccessTierRevalidator(_plexClient,
+            TwoFactorPolicyFactory.Create(_plexClient, requireTwoFactor, exempt), _cache,
             Substitute.For<ILogger<AccessTierRevalidator>>());
     }
 
@@ -116,5 +122,53 @@ public class AccessTierRevalidatorTest
         await _revalidator.ValidatePrincipal(CreateContext(AccessTier.Owner));
 
         await _plexClient.ReceivedWithAnyArgs(1).GetAccessTier(default!, default!);
+    }
+
+    [Test]
+    public async Task ValidatePrincipal_WhenTwoFactorNotRequired_DoesNotCheckIt()
+    {
+        _plexClient.GetAccessTier(default!, default!).ReturnsForAnyArgs(AccessTier.NormalUser);
+
+        await _revalidator.ValidatePrincipal(CreateContext(AccessTier.NormalUser));
+
+        await _plexClient.DidNotReceiveWithAnyArgs().IsTwoFactorEnabled(default!);
+    }
+
+    [Test]
+    public async Task ValidatePrincipal_WhenTwoFactorRequiredAndDisabled_RejectsPrincipal()
+    {
+        _plexClient.GetAccessTier(default!, default!).ReturnsForAnyArgs(AccessTier.NormalUser);
+        _plexClient.IsTwoFactorEnabled(default!).ReturnsForAnyArgs(false);
+        var context = CreateContext(AccessTier.NormalUser);
+
+        await CreateRevalidator(requireTwoFactor: true).ValidatePrincipal(context);
+
+        Assert.That(context.Principal, Is.Null);
+    }
+
+    [Test]
+    public async Task ValidatePrincipal_WhenTwoFactorRequiredButUserExempt_KeepsPrincipal()
+    {
+        _plexClient.GetAccessTier(default!, default!).ReturnsForAnyArgs(AccessTier.NormalUser);
+        _plexClient.IsTwoFactorEnabled(default!).ReturnsForAnyArgs(false);
+        var context = CreateContext(AccessTier.NormalUser);
+        var original = context.Principal;
+
+        await CreateRevalidator(requireTwoFactor: true, "user").ValidatePrincipal(context);
+
+        Assert.That(context.Principal, Is.SameAs(original));
+    }
+
+    [Test]
+    public async Task ValidatePrincipal_WhenTwoFactorStatusUnavailable_KeepsExistingTier()
+    {
+        _plexClient.GetAccessTier(default!, default!).ReturnsForAnyArgs(AccessTier.NormalUser);
+        _plexClient.IsTwoFactorEnabled(default!).ReturnsForAnyArgs((bool?)null);
+        var context = CreateContext(AccessTier.NormalUser);
+        var original = context.Principal;
+
+        await CreateRevalidator(requireTwoFactor: true).ValidatePrincipal(context);
+
+        Assert.That(context.Principal, Is.SameAs(original));
     }
 }
